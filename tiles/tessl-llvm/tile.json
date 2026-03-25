@@ -4,8 +4,8 @@
   "summary": "designing a new programming language",
   "docs": "docs/index.md",
   "rules": {
-    "designing a new programming language 2": {
-      "rules": "rules/designing a new programming language 2.md"
+    "new-programming-language": {
+      "rules": "rules/new-programming-language.md"
     }
   },
   "skills": {

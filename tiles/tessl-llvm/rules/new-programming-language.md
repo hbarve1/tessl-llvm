@@ -1,4 +1,4 @@
-# Designing a new programming language 2
+# New-programming-language.md
 
 TODO: Add instructions for the coding agents
 
