@@ -1,0 +1,16 @@
+{
+  "name": "hbarve1/tessl-llvm",
+  "version": "0.1.0",
+  "summary": "designing a new programming language",
+  "docs": "docs/index.md",
+  "rules": {
+    "designing a new programming language 2": {
+      "rules": "rules/designing a new programming language 2.md"
+    }
+  },
+  "skills": {
+    "tessl-llvm": {
+      "path": "skills/tessl-llvm/SKILL.md"
+    }
+  }
+}
