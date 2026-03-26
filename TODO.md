@@ -62,6 +62,50 @@ Checklist for getting the LLVM Tessl tile from stub to a useful public registry 
 
 ---
 
+## Phase 7 — Language implementation layer (next up)
+
+### Critical — Every real language needs these
+
+#### Task 1: Frontend → IR lowering
+- [x] Add `docs/frontend-to-ir.md` — AST lowering patterns: expressions, if/else, loops, functions, closures, structs, arrays
+- [x] Add `skills/frontend-to-ir/SKILL.md` — full CodeGenCtx, type mapping, expression/statement/block emit, mem2reg cleanup
+
+#### Task 2: Debug info (DWARF)
+- [x] Add `docs/debug-info.md` — DIBuilder, DICompileUnit, DISubprogram, DILocalVariable, DILocation, module flags
+- [x] Add `skills/add-debug-info/SKILL.md` — step-by-step: DIBuilder init, types, subprograms, param/local declares, source locations, finalize
+
+#### Task 3: ORC JIT v2
+- [x] Add `docs/jit.md` — LLJIT, LLLazyJIT, ThreadSafeModule, DynamicLibrarySearchGenerator, optimization transform, REPL pattern, multiple JITDylibs
+- [x] Add `skills/jit-setup/SKILL.md` — step-by-step: CMake, target init, LLJIT, symbol exposure, IR module add, optimization, lookup/call, lazy JIT, REPL
+
+#### Task 4: Exception handling
+- [x] Add `docs/exception-handling.md` — invoke, landingpad, personality functions, __cxa_begin/end_catch, resume, cleanup, Itanium/Windows SEH, full try/catch pattern
+
+### High — Production quality
+
+#### Task 5: Lit / FileCheck testing
+- [x] Add `skills/lit-filecheck/SKILL.md` — RUN lines, CHECK directives, captures, negative checks, IR/codegen/plugin tests, lit.cfg.py, debugging failures
+
+#### Task 6: Garbage collection / statepoints
+- [x] Add `docs/gc-statepoints.md` — gcroot shadow stack, gc.statepoint/gc.relocate/gc.result, RewriteStatepointsForGC pass, StackMap section, custom GC strategy
+
+#### Task 7: Attributes & loop metadata
+- [x] Add `docs/attributes-metadata.md` — function/param/return attributes table, loop hints (!llvm.loop), branch weights (!prof), TBAA, !range, !nonnull, !align
+
+### Medium — Advanced use cases
+
+#### Task 8: Custom calling conventions
+- [ ] Add `docs/calling-conventions.md` — CallingConv enum, TableGen CallingConv.td, CCState, CCValAssign, full custom CC walkthrough
+- [ ] Add `skills/add-calling-convention/SKILL.md` — skill: define and wire a custom calling convention end-to-end
+
+#### Task 9: LTO / ThinLTO
+- [ ] Add `docs/lto.md` — LTO vs ThinLTO, plugin interface, `lld` integration, LLVM IR bitcode, summary index
+
+#### Task 10: Custom alias analysis
+- [ ] Add `docs/alias-analysis.md` — AAResult, AliasAnalysis NPM pass, ModRef, writing language-specific AA (e.g., no-alias for immutable values)
+
+---
+
 ## Phase 6 — Repository hygiene and maintenance
 
 - [x] Add published tile to root [`tessl.json`](tessl.json) for dogfooding — already present as `file:./tiles/tessl-llvm`.

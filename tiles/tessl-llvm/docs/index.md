@@ -32,6 +32,12 @@ This tile provides **three layers** of LLVM-specific assistance:
 | [TableGen](tablegen.md) | TableGen syntax, backends, adding records for registers/instructions/intrinsics |
 | [Out-of-Tree Projects](out-of-tree.md) | CMake setup, find_package(LLVM 20), component linking |
 | [Code Generation](codegen.md) | SelectionDAG, GlobalISel, MachineFunction, TargetMachine |
+| [Frontend → IR Lowering](frontend-to-ir.md) | AST lowering: expressions, control flow, functions, closures, structs |
+| [Debug Info (DWARF)](debug-info.md) | DIBuilder, DISubprogram, DILocalVariable, source locations |
+| [ORC JIT v2](jit.md) | LLJIT, LLLazyJIT, ThreadSafeModule, symbol resolution, REPL pattern |
+| [Exception Handling](exception-handling.md) | invoke, landingpad, personality functions, cleanup/catch |
+| [GC & Statepoints](gc-statepoints.md) | gcroot (legacy), gc.statepoint / gc.relocate, StackMap |
+| [Attributes & Metadata](attributes-metadata.md) | Function/param attributes, loop hints, branch weights, TBAA, !range |
 | [LLVM 20 Version Notes](version-notes.md) | Breaking changes from LLVM 17/18/19 → 20 |
 
 ---
@@ -45,6 +51,10 @@ This tile provides **three layers** of LLVM-specific assistance:
 | `add-intrinsic` | Adding a new `llvm.*` IR intrinsic |
 | `version-sync` | Migrating an existing project to LLVM 20 |
 | `new-target-backend` | Adding a new ISA target backend |
+| `frontend-to-ir` | Lowering an AST to LLVM IR with IRBuilder |
+| `add-debug-info` | Adding DWARF debug info to a frontend |
+| `jit-setup` | Setting up ORC JIT v2 for a language runtime or REPL |
+| `lit-filecheck` | Writing lit/FileCheck tests for passes, transforms, or codegen |
 
 ---
 

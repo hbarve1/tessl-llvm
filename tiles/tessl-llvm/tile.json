@@ -1,6 +1,6 @@
 {
   "name": "hbarve1/tessl-llvm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "summary": "LLVM 20.x tile for building compilers, language runtimes, and out-of-tree tooling",
   "docs": "docs/index.md",
   "rules": {
@@ -23,6 +23,18 @@
     },
     "new-target-backend": {
       "path": "skills/new-target/SKILL.md"
+    },
+    "frontend-to-ir": {
+      "path": "skills/frontend-to-ir/SKILL.md"
+    },
+    "add-debug-info": {
+      "path": "skills/add-debug-info/SKILL.md"
+    },
+    "jit-setup": {
+      "path": "skills/jit-setup/SKILL.md"
+    },
+    "lit-filecheck": {
+      "path": "skills/lit-filecheck/SKILL.md"
     }
   }
 }

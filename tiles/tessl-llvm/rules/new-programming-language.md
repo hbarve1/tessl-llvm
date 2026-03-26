@@ -87,3 +87,52 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 - Use `BuildMI(MBB, InsertPt, DL, TII.get(Opc))` to build `MachineInstr`s — never construct them directly.
 - Always call `constrainSelectedInstRegOperands` after manual instruction selection in GlobalISel.
 - For more: [codegen.md](../docs/codegen.md)
+
+---
+
+## Frontend IR lowering
+
+- Use the alloca + mem2reg pattern for local variables — never emit PHI nodes manually during initial lowering.
+- Always alloca in the entry block, not at the point of use. `PromotePass` (mem2reg) only promotes entry-block allocas.
+- Always check `getTerminator()` before adding a branch — two terminators on one block is a verifier error.
+- Forward-declare all functions before emitting bodies to support mutual recursion.
+- For more: [frontend-to-ir.md](../docs/frontend-to-ir.md)
+
+---
+
+## Debug info
+
+- Always call `DBuilder.finalize()` after all functions are emitted — never skip it.
+- Clear the debug location (`B.SetCurrentDebugLocation({})`) for compiler-synthesized instructions with no source correspondence.
+- Set `AlwaysPreserve=true` for parameter variables so they survive optimization.
+- Add `Debug Info Version` and `Dwarf Version` module flags.
+- For more: [debug-info.md](../docs/debug-info.md)
+
+---
+
+## JIT (ORC v2)
+
+- Use `LLJIT` or `LLLazyJIT` — never MCJIT (deprecated/removed in LLVM 20).
+- Call `InitializeNativeTarget()`, `InitializeNativeTargetAsmPrinter()` at program start, before constructing any JIT.
+- Use one `LLVMContext` per `ThreadSafeModule` for correct thread-safety.
+- Add `DynamicLibrarySearchGenerator::GetForCurrentProcess` if JIT'd code calls libc.
+- For more: [jit.md](../docs/jit.md)
+
+---
+
+## Exception handling
+
+- Use `invoke` (not `call`) for any call that may unwind in a function that has landing pads.
+- Always set `F->setPersonalityFn()` on functions with landing pads.
+- Always call `__cxa_begin_catch` / `__cxa_end_catch` around catch bodies (Itanium ABI).
+- For more: [exception-handling.md](../docs/exception-handling.md)
+
+---
+
+## Attributes and metadata
+
+- Set `NoUnwind` on all functions that never throw — it unlocks significant optimizer opportunities.
+- Set `NoCapture` on pointer parameters that don't escape the call — critical for alias analysis.
+- Set `Noundef` on values guaranteed to be fully initialized.
+- Use `!llvm.loop` metadata to communicate vectorization/unroll hints; don't rely on the optimizer to infer them.
+- For more: [attributes-metadata.md](../docs/attributes-metadata.md)
