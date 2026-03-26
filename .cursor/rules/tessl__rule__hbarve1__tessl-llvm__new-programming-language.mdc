@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 # LLVM 20 — Agent Steering Rules
 
 These rules apply whenever you are writing, reviewing, or modifying code that uses LLVM 20 APIs. They are always loaded into context — keep them in mind for every LLVM code generation decision.
@@ -10,7 +14,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 - Pass classes must inherit from `PassInfoMixin<T>` and implement `PreservedAnalyses run(IRUnit &, AnalysisManager &)`.
 - Return `PreservedAnalyses::all()` when nothing is modified. Return `PreservedAnalyses::none()` only when the full IR may have changed.
 - Obtain analysis results via `FAM.getResult<AnalysisType>(F)`, not via `getAnalysis<>()`.
-- For more: [new-pass-manager.md](../docs/new-pass-manager.md)
+- For more: [new-pass-manager.md](../../.tessl/tiles/hbarve1/tessl-llvm/docs/new-pass-manager.md)
 
 ---
 
@@ -22,7 +26,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
   - `Builder.CreateLoad(ElemTy, Ptr, "name")`
   - `Builder.CreateGEP(ElemTy, Ptr, Indices)`
 - Track pointee types in your own data structures — do not re-derive them from pointer types.
-- For more: [ir-types.md](../docs/ir-types.md)
+- For more: [ir-types.md](../../.tessl/tiles/hbarve1/tessl-llvm/docs/ir-types.md)
 
 ---
 
@@ -39,7 +43,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 - **Verify API signatures against LLVM 20 headers** before emitting any LLVM API call. When uncertain, consult the relevant doc page or note that verification is needed.
 - Use `Intrinsic::getOrInsertDeclaration()` — `Intrinsic::getDeclaration()` is deprecated.
 - Include headers from `llvm/TargetParser/Triple.h` and `llvm/TargetParser/Host.h` — the old `llvm/ADT/Triple.h` and `llvm/Support/Host.h` paths are moved.
-- For the full list of LLVM 20 breaking changes: [version-notes.md](../docs/version-notes.md)
+- For the full list of LLVM 20 breaking changes: [version-notes.md](../../.tessl/tiles/hbarve1/tessl-llvm/docs/version-notes.md)
 
 ---
 
@@ -67,7 +71,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 - Always include `llvm/Target/Target.td` at the top of target `.td` files.
 - Always set `let Namespace = "MyTarget"` on all registers, register classes, and instructions.
 - Never hand-edit `*Gen*.inc` files — always regenerate via `cmake --build --target XYZCommonTableGen`.
-- For more: [tablegen.md](../docs/tablegen.md)
+- For more: [tablegen.md](../../.tessl/tiles/hbarve1/tessl-llvm/docs/tablegen.md)
 
 ---
 
@@ -77,7 +81,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 - Set `CMAKE_CXX_STANDARD 17` — LLVM 20 requires C++17.
 - If `LLVM_ENABLE_RTTI=OFF` (default), add `-fno-rtti` to your project's compile options.
 - Never link LLVM libs into a pass plugin — use only symbols provided by the `opt` host process.
-- For more: [out-of-tree.md](../docs/out-of-tree.md)
+- For more: [out-of-tree.md](../../.tessl/tiles/hbarve1/tessl-llvm/docs/out-of-tree.md)
 
 ---
 
@@ -86,4 +90,4 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 - Prefer GlobalISel for new targets — it operates on Machine IR throughout and avoids the SelectionDAG intermediate representation.
 - Use `BuildMI(MBB, InsertPt, DL, TII.get(Opc))` to build `MachineInstr`s — never construct them directly.
 - Always call `constrainSelectedInstRegOperands` after manual instruction selection in GlobalISel.
-- For more: [codegen.md](../docs/codegen.md)
+- For more: [codegen.md](../../.tessl/tiles/hbarve1/tessl-llvm/docs/codegen.md)

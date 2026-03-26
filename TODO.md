@@ -16,27 +16,20 @@ Checklist for getting the LLVM Tessl tile from stub to a useful public registry 
 
 ## Phase 2 — Documentation (`tiles/tessl-llvm/docs/`)
 
-- [ ] Rewrite [`docs/index.md`](tiles/tessl-llvm/docs/index.md): scope, LLVM 20 version contract, how agents should use this tile vs upstream docs.
-- [ ] Add `docs/ir-types.md` — LLVM IR types, values, constants, metadata in LLVM 20.
-- [ ] Add `docs/new-pass-manager.md` — NPM architecture, PassManager/AnalysisManager, pass registration in LLVM 20.
-- [ ] Add `docs/tablegen.md` — TableGen syntax, backends (LLVM, Clang), how to add records in LLVM 20.
-- [ ] Add `docs/out-of-tree.md` — CMake setup, find_package(LLVM), linking libs, llvm-config usage for LLVM 20.
-- [ ] Add `docs/codegen.md` — SelectionDAG / GlobalISel basics, MachineFunction, TargetMachine in LLVM 20.
-- [ ] Add `docs/version-notes.md` — Key LLVM 20 API changes vs LLVM 19/18 (breaking changes agents must know).
-- [ ] Link all pages to official [LLVM 20 release notes](https://releases.llvm.org/20.0.0/docs/ReleaseNotes.html).
+- [x] Rewrite [`docs/index.md`](tiles/tessl-llvm/docs/index.md): scope, LLVM 20 version contract, how agents should use this tile vs upstream docs.
+- [x] Add `docs/ir-types.md` — LLVM IR types, values, constants, metadata, IRBuilder patterns in LLVM 20.
+- [x] Add `docs/new-pass-manager.md` — NPM architecture, PassBuilder, AnalysisManager, PreservedAnalyses, pass registration in LLVM 20.
+- [x] Add `docs/tablegen.md` — TableGen syntax, multiclass, foreach, register/instr/intrinsic/CC defs, cmake integration.
+- [x] Add `docs/out-of-tree.md` — CMake find_package(LLVM 20), llvm_map_components_to_libnames, component reference, pass plugin setup.
+- [x] Add `docs/codegen.md` — TargetMachine, SelectionDAG ISelLowering, GlobalISel pipeline, MachineFunction/MachineInstr, MachineFunctionPass.
+- [x] Add `docs/version-notes.md` — LLVM 20 breaking changes: legacy PM removal, opaque pointers, Optional removal, header moves, deprecations.
+- [x] Link all pages to official [LLVM 20 release notes](https://releases.llvm.org/20.0.0/docs/ReleaseNotes.html).
 
 ---
 
 ## Phase 3 — Steering rules (`tiles/tessl-llvm/rules/`)
 
-- [ ] Replace placeholder `rules/new-programming-language.md` with LLVM 20-oriented agent steering rules:
-  - Always use New Pass Manager (NPM) — never legacy PM.
-  - Verify API signatures against LLVM 20 headers before emitting code.
-  - Use `llvm::Expected<T>` / `llvm::Error` for fallible operations, not raw pointers.
-  - Follow LLVM coding standards (no `using namespace llvm` in headers, etc.).
-  - Always check `LLVM_VERSION_MAJOR == 20` guards when referencing version-specific APIs.
-  - Prefer `PatternMatch` / `IRBuilder` over manual IR construction.
-  - Link to detailed doc pages for on-demand reference.
+- [x] Replace placeholder `rules/new-programming-language.md` with LLVM 20-oriented agent steering rules covering: NPM only, opaque pointers, std::optional, API correctness, coding standards, IR construction, TableGen, out-of-tree CMake, GlobalISel preference — all linking to detailed doc pages.
 
 ---
 
@@ -62,8 +55,8 @@ Checklist for getting the LLVM Tessl tile from stub to a useful public registry 
 ## Phase 5 — Quality and publish
 
 - [x] Update `tile.json` to reference all new skill paths.
-- [ ] `tessl install file:./tiles/tessl-llvm` — smoke test locally.
-- [ ] `tessl tile lint ./tiles/tessl-llvm` — fix all issues.
+- [x] `tessl install file:./tiles/tessl-llvm` — ✔ Installed hbarve1/tessl-llvm@0.1.0
+- [x] `tessl tile lint ./tiles/tessl-llvm` — ✔ Tile is valid (1.8k front-loaded, 9.9k on-demand, 13.6k content tokens)
 - [ ] Optional: `tessl tile pack --output ./dist ./tiles/tessl-llvm`.
 - [ ] `tessl login` and `tessl tile publish` when content is ready.
 
@@ -71,7 +64,7 @@ Checklist for getting the LLVM Tessl tile from stub to a useful public registry 
 
 ## Phase 6 — Repository hygiene and maintenance
 
-- [ ] Add published tile to root [`tessl.json`](tessl.json) for dogfooding.
+- [x] Add published tile to root [`tessl.json`](tessl.json) for dogfooding — already present as `file:./tiles/tessl-llvm`.
 - [ ] Bump tile semver when LLVM or content meaningfully changes.
 - [ ] Document version policy in README.
 - [ ] On new LLVM releases: refresh version notes, adjust skills if APIs moved, bump tile version, republish.
