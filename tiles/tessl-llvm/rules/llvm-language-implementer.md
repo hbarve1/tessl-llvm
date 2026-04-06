@@ -1,0 +1,23 @@
+# LLVM language implementer — steering
+
+Concise rules while this tile is installed. Details live under [docs/](../docs/index.md).
+
+## Version contract
+
+- Assume **LLVM 22.1.x** (tag `llvmorg-22.1.2` or patch-equivalent). Do not treat LLVM 18–21 APIs as authoritative without checking the 22.x tree.
+- When uncertain, **open the matching headers or docs** in the user’s checkout or [LLVM 22.1.2 release notes](https://releases.llvm.org/22.1.2/docs/ReleaseNotes.html) instead of guessing.
+
+## Pass manager and structure
+
+- Prefer the **New Pass Manager** (`PassBuilder`, `FunctionPassManager`, module pipelines). Avoid legacy pass manager patterns unless the codebase explicitly still uses them.
+- New optimization passes should be **`llvm::PassInfoMixin`-style** passes with `llvm::AnalysisManager` where appropriate; follow in-tree examples in `llvm/lib` for the same LLVM version.
+
+## Coding standards
+
+- Follow the [LLVM Coding Standards](https://llvm.org/docs/CodingStandards.html): naming, `LLVM_*` macros, error handling with `Error` / `Expected` where the surrounding code does, no exceptions across LLVM boundaries.
+- Use **TableGen** (`.td`) for instruction patterns and many targets—do not hand-roll huge MC/Asm fragments when TableGen is the project norm.
+
+## Safety
+
+- Do not invent IR intrinsics, attributes, or calling conventions—**verify** in LangRef and source for 22.x.
+- For ABI/CG hooks, use **`TargetLowering` / `SelectionDAG` / GlobalISel** paths consistent with the target being modified; prefer consulting existing backend code in-tree.

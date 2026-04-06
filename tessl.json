@@ -1,5 +1,9 @@
 {
   "name": "my-project",
   "mode": "vendored",
-  "dependencies": {}
+  "dependencies": {
+    "hbarve1/tessl-llvm": {
+      "source": "file:./tiles/tessl-llvm"
+    }
+  }
 }

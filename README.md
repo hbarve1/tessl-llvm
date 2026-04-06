@@ -1,6 +1,8 @@
 # tessl-llvm
 
-This repository maintains a **[Tessl](https://tessl.io/) tile** aimed at people building compilers, language runtimes, and other tooling on **LLVM**. The tile packages documentation, steering (always-on guidance for agents procedural skills so coding assistants get **version-aware context** instead of guessing against outdated LLVM APIs and workflows.
+This repository maintains a **[Tessl](https://tessl.io/) tile** aimed at people building compilers, language runtimes, and other tooling on **LLVM**. The tile packages documentation, steering (always-on guidance for agents), and procedural skills so coding assistants get **version-aware context** instead of guessing against outdated LLVM APIs and workflows.
+
+**Current tile target:** LLVM **22.1.x** (reference tag `llvmorg-22.1.2`). Older LLVM lines may be documented in future tile versions.
 
 ## Why this exists
 
