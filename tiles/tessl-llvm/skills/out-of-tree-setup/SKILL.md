@@ -63,7 +63,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ── Find LLVM 20 ──────────────────────────────────────────────────────────────
-find_package(LLVM 20 REQUIRED CONFIG)
+find_package(LLVM 22 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")

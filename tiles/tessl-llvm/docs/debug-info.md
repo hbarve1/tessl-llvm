@@ -136,6 +136,7 @@ llvm::DISubprogram *SP = DBuilder.createFunction(
     /*ScopeLine=*/1,             // line of opening brace
     llvm::DINode::FlagPrototyped,
     llvm::DISubprogram::SPFlagDefinition
+    // New in LLVM 22: optional UseKeyInstructions=false (last param, default safe)
 );
 
 // Attach to LLVM Function
@@ -172,6 +173,7 @@ llvm::DILocalVariable *LocalVar = DBuilder.createAutoVariable(
 );
 
 // Insert llvm.dbg.declare — binds debug variable to an alloca address
+// LLVM 22: returns DbgInstPtr (PointerUnion<Instruction*, DbgRecord*>) — usually ignored
 DBuilder.insertDeclare(
     Alloca,       // the alloca holding the variable
     ParamX,       // DILocalVariable
@@ -181,12 +183,25 @@ DBuilder.insertDeclare(
 );
 
 // Insert llvm.dbg.value — binds debug variable to an SSA value (after mem2reg)
+// LLVM 22: returns DbgInstPtr — usually ignored
 DBuilder.insertDbgValueIntrinsic(
     Val,          // the SSA value
     LocalVar,
     DBuilder.createExpression(),
     llvm::DILocation::get(Ctx, 3, 5, SP),
     InsertBefore
+);
+
+// NEW in LLVM 22: insertDbgAssign — assignment tracking
+// Links a store instruction to the debug variable it assigns
+DBuilder.insertDbgAssign(
+    StoreInst,       // the store instruction that performs the assignment
+    Val,             // the value being stored
+    LocalVar,        // DILocalVariable
+    DBuilder.createExpression(),   // value expression
+    Ptr,             // address operand (alloca or heap ptr)
+    DBuilder.createExpression(),   // address expression
+    llvm::DILocation::get(Ctx, Line, Col, SP)
 );
 ```
 

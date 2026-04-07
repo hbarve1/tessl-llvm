@@ -1,8 +1,8 @@
-# tessl-llvm — LLVM 20.x Tile
+# tessl-llvm — LLVM 22.x Tile
 
-**Audience:** Compiler engineers, language implementers, and tooling authors building on LLVM 20.
+**Audience:** Compiler engineers, language implementers, and tooling authors building on LLVM 22.
 
-**Version contract:** All content in this tile is pinned to **LLVM 20.x** (specifically the LLVM 20.0 release line). API signatures, pass names, header paths, and CMake variables reflect LLVM 20 — not LLVM 17/18/19. When in doubt, verify against the [LLVM 20 source](https://github.com/llvm/llvm-project/tree/llvmorg-20.0.0) or [LLVM 20 release notes](https://releases.llvm.org/20.0.0/docs/ReleaseNotes.html).
+**Version contract:** All content in this tile is pinned to **LLVM 22.x** (specifically the LLVM 22.1.2 release). API signatures, pass names, header paths, and CMake variables reflect LLVM 22 — not LLVM 19/20/21. When in doubt, verify against the [LLVM 22 source](https://github.com/llvm/llvm-project/tree/llvmorg-22.1.2) or [LLVM 22 release notes](https://releases.llvm.org/22.1.0/docs/ReleaseNotes.html).
 
 ---
 
@@ -17,9 +17,9 @@ This tile provides **three layers** of LLVM-specific assistance:
 | **Skills** | Step-by-step workflows — invoke a skill to execute a specific LLVM task end-to-end | `skills/*/SKILL.md` |
 
 **When to use this tile vs upstream docs:**
-- Use this tile first for LLVM 20 API signatures, CMake patterns, pass registration, and common workflows.
+- Use this tile first for LLVM 22 API signatures, CMake patterns, pass registration, and common workflows.
 - Use [official LLVM docs](https://llvm.org/docs/) and [Doxygen](https://llvm.org/doxygen/) for exhaustive API coverage, rarely-used APIs, and language reference grammar.
-- Use [LLVM release notes](https://releases.llvm.org/20.0.0/docs/ReleaseNotes.html) for the authoritative list of LLVM 20 breaking changes.
+- Use [LLVM release notes](https://releases.llvm.org/22.1.0/docs/ReleaseNotes.html) for the authoritative list of LLVM 22 breaking changes.
 
 ---
 
@@ -30,7 +30,7 @@ This tile provides **three layers** of LLVM-specific assistance:
 | [IR Types & Values](ir-types.md) | Types, constants, metadata, IRBuilder patterns |
 | [New Pass Manager](new-pass-manager.md) | NPM architecture, PassBuilder, AnalysisManager, pass pipeline |
 | [TableGen](tablegen.md) | TableGen syntax, backends, adding records for registers/instructions/intrinsics |
-| [Out-of-Tree Projects](out-of-tree.md) | CMake setup, find_package(LLVM 20), component linking |
+| [Out-of-Tree Projects](out-of-tree.md) | CMake setup, find_package(LLVM 22), component linking |
 | [Code Generation](codegen.md) | SelectionDAG, GlobalISel, MachineFunction, TargetMachine |
 | [Frontend → IR Lowering](frontend-to-ir.md) | AST lowering: expressions, control flow, functions, closures, structs |
 | [Debug Info (DWARF)](debug-info.md) | DIBuilder, DISubprogram, DILocalVariable, source locations |
@@ -38,7 +38,7 @@ This tile provides **three layers** of LLVM-specific assistance:
 | [Exception Handling](exception-handling.md) | invoke, landingpad, personality functions, cleanup/catch |
 | [GC & Statepoints](gc-statepoints.md) | gcroot (legacy), gc.statepoint / gc.relocate, StackMap |
 | [Attributes & Metadata](attributes-metadata.md) | Function/param attributes, loop hints, branch weights, TBAA, !range |
-| [LLVM 20 Version Notes](version-notes.md) | Breaking changes from LLVM 17/18/19 → 20 |
+| [LLVM 22 Version Notes](version-notes.md) | Breaking changes from LLVM 19/20/21 → 22 |
 
 ---
 
@@ -47,9 +47,9 @@ This tile provides **three layers** of LLVM-specific assistance:
 | Skill | Invoke when... |
 |-------|---------------|
 | `add-npm-pass` | Adding a new optimization or analysis pass |
-| `out-of-tree-setup` | Starting a new compiler/tool project against LLVM 20 |
+| `out-of-tree-setup` | Starting a new compiler/tool project against LLVM 22 |
 | `add-intrinsic` | Adding a new `llvm.*` IR intrinsic |
-| `version-sync` | Migrating an existing project to LLVM 20 |
+| `version-sync` | Migrating an existing project to LLVM 22 |
 | `new-target-backend` | Adding a new ISA target backend |
 | `frontend-to-ir` | Lowering an AST to LLVM IR with IRBuilder |
 | `add-debug-info` | Adding DWARF debug info to a frontend |
@@ -58,14 +58,16 @@ This tile provides **three layers** of LLVM-specific assistance:
 
 ---
 
-## LLVM 20 at a glance — things that changed
+## LLVM 22 at a glance — things that changed
 
-- **Legacy PassManager removed.** Only the New Pass Manager (NPM) exists.
+- **Legacy PassManager still present but never use it for new code.** Use NPM (`PassInfoMixin`, `FunctionAnalysisManager`, etc.) for all passes.
 - **Opaque pointers enforced.** `i8*`, `i32*` etc. are gone — only `ptr`.
 - **`llvm::Optional` removed.** Use `std::optional` / `std::nullopt`.
-- **`Triple.h` moved** to `llvm/TargetParser/Triple.h`.
-- **`Intrinsic::getDeclaration()` deprecated** — use `getOrInsertDeclaration()`.
+- **`Triple.h` moved** to `llvm/TargetParser/Triple.h` (old `llvm/ADT/Triple.h` removed).
+- **`Intrinsic::getDeclaration()` removed** — use `getOrInsertDeclaration()` or `getDeclarationIfExists()`.
+- **`DbgInstPtr` return type** on `DIBuilder::insertDeclare` and `insertDbgValueIntrinsic` — can be `Instruction*` or `DbgRecord*`.
 - **C++17 required** for all downstream projects.
+- **MCJIT removed** — use ORC JIT v2 (`LLJIT` / `LLLazyJIT`).
 
 See [version-notes.md](version-notes.md) for the full migration reference.
 
@@ -79,7 +81,7 @@ See [version-notes.md](version-notes.md) for the full migration reference.
 - Out-of-tree project setup (CMake, linking)
 - TableGen for registers, instructions, and intrinsics
 - SelectionDAG and GlobalISel codegen basics
-- LLVM 20 migration guidance
+- LLVM 22 migration guidance
 
 **Out of scope (v0.1.0):**
 - Clang/Flang frontend internals

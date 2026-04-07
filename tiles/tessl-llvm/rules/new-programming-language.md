@@ -1,12 +1,12 @@
-# LLVM 20 — Agent Steering Rules
+# LLVM 22 — Agent Steering Rules
 
-These rules apply whenever you are writing, reviewing, or modifying code that uses LLVM 20 APIs. They are always loaded into context — keep them in mind for every LLVM code generation decision.
+These rules apply whenever you are writing, reviewing, or modifying code that uses LLVM 22 APIs. They are always loaded into context — keep them in mind for every LLVM code generation decision.
 
 ---
 
 ## Pass Manager
 
-- **Always use the New Pass Manager (NPM).** The legacy `PassManager` is removed in LLVM 20. Never emit `legacy::PassManager`, `FunctionPass`, `ModulePass`, `getAnalysis<>()`, `AU.setPreservesAll()`, or `createXYZPass()` factory functions.
+- **Always use the New Pass Manager (NPM).** The legacy `PassManager` still exists but must NOT be used for new code — always use NPM. Never emit `legacy::PassManager`, `FunctionPass`, `ModulePass`, `getAnalysis<>()`, `AU.setPreservesAll()`, or `createXYZPass()` factory functions.
 - Pass classes must inherit from `PassInfoMixin<T>` and implement `PreservedAnalyses run(IRUnit &, AnalysisManager &)`.
 - Return `PreservedAnalyses::all()` when nothing is modified. Return `PreservedAnalyses::none()` only when the full IR may have changed.
 - Obtain analysis results via `FAM.getResult<AnalysisType>(F)`, not via `getAnalysis<>()`.
@@ -36,10 +36,10 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 
 ## API correctness
 
-- **Verify API signatures against LLVM 20 headers** before emitting any LLVM API call. When uncertain, consult the relevant doc page or note that verification is needed.
+- **Verify API signatures against LLVM 22 headers** before emitting any LLVM API call. When uncertain, consult the relevant doc page or note that verification is needed.
 - Use `Intrinsic::getOrInsertDeclaration()` — `Intrinsic::getDeclaration()` is deprecated.
 - Include headers from `llvm/TargetParser/Triple.h` and `llvm/TargetParser/Host.h` — the old `llvm/ADT/Triple.h` and `llvm/Support/Host.h` paths are moved.
-- For the full list of LLVM 20 breaking changes: [version-notes.md](../docs/version-notes.md)
+- For the full list of LLVM 22 breaking changes: [version-notes.md](../docs/version-notes.md)
 
 ---
 
@@ -56,7 +56,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 ## IR construction
 
 - Use `IRBuilder<>` for all instruction emission — never construct `Instruction` subclasses directly via `new`.
-- Use `PoisonValue::get(T)` instead of `UndefValue::get(T)` when modeling undefined behavior — poison is the correct LLVM 20 model for UB.
+- Use `PoisonValue::get(T)` instead of `UndefValue::get(T)` when modeling undefined behavior — poison is the correct LLVM 22 model for UB.
 - Always call `verifyModule(*M, &errs())` during development to catch IR invariant violations early.
 - Use `IRBuilder<>::CreateNSWAdd` / `CreateNUWAdd` / `CreateFAddFMF` when you know flags apply — these enable more optimization.
 
@@ -73,8 +73,8 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 
 ## Out-of-tree projects
 
-- Use `find_package(LLVM 20 REQUIRED CONFIG)` and `llvm_map_components_to_libnames` — never hardcode `-lLLVMCore` etc.
-- Set `CMAKE_CXX_STANDARD 17` — LLVM 20 requires C++17.
+- Use `find_package(LLVM 22 REQUIRED CONFIG)` and `llvm_map_components_to_libnames` — never hardcode `-lLLVMCore` etc.
+- Set `CMAKE_CXX_STANDARD 17` — LLVM 22 requires C++17.
 - If `LLVM_ENABLE_RTTI=OFF` (default), add `-fno-rtti` to your project's compile options.
 - Never link LLVM libs into a pass plugin — use only symbols provided by the `opt` host process.
 - For more: [out-of-tree.md](../docs/out-of-tree.md)
@@ -112,7 +112,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 
 ## JIT (ORC v2)
 
-- Use `LLJIT` or `LLLazyJIT` — never MCJIT (deprecated/removed in LLVM 20).
+- Use `LLJIT` or `LLLazyJIT` — never MCJIT (deprecated in prior versions; MCJIT removed in LLVM 22).
 - Call `InitializeNativeTarget()`, `InitializeNativeTargetAsmPrinter()` at program start, before constructing any JIT.
 - Use one `LLVMContext` per `ThreadSafeModule` for correct thread-safety.
 - Add `DynamicLibrarySearchGenerator::GetForCurrentProcess` if JIT'd code calls libc.

@@ -165,7 +165,7 @@ add_llvm_component_library(LLVM<Category>
 ### Out-of-tree (plugin)
 
 ```cmake
-find_package(LLVM 20 REQUIRED CONFIG)
+find_package(LLVM 22 REQUIRED CONFIG)
 
 add_llvm_pass_plugin(<PassName>
   <PassName>.cpp

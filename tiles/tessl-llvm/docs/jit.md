@@ -85,7 +85,8 @@ int main(int argc, char **argv) {
 ## LLLazyJIT — lazy (on-demand) compilation
 
 ```cpp
-#include "llvm/ExecutionEngine/Orc/LLLazyJIT.h"
+// LLLazyJIT is declared in LLJIT.h — there is no separate LLLazyJIT.h in LLVM 22
+#include "llvm/ExecutionEngine/Orc/LLJIT.h"
 
 auto LazyJIT = LLLazyJITBuilder().create();
 if (!LazyJIT) { /* handle error */ }

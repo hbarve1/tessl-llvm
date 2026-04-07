@@ -131,6 +131,7 @@ void declareParam(llvm::AllocaInst *Alloca, const std::string &Name,
       getOrCreateDIType(lookupParamTypeName(Name)),
       /*AlwaysPreserve=*/true  // keep even if optimized away
   );
+  // insertDeclare returns DbgInstPtr in LLVM 22 — usually ignored
   DBuilder->insertDeclare(
       Alloca, DIVar, DBuilder->createExpression(),
       llvm::DILocation::get(M->getContext(), Line, /*Col=*/1, SP),

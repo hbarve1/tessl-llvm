@@ -12,7 +12,7 @@ Use this skill when the user wants to JIT-compile and execute LLVM IR at runtime
 ## Step 0 — CMake setup
 
 ```cmake
-find_package(LLVM 20 REQUIRED CONFIG)
+find_package(LLVM 22 REQUIRED CONFIG)
 
 llvm_map_components_to_libnames(LLVM_LIBS
   Core Support OrcJIT ExecutionEngine

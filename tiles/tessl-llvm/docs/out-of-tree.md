@@ -1,4 +1,4 @@
-# Out-of-Tree LLVM 20 Projects — CMake Setup & Linking
+# Out-of-Tree LLVM 22 Projects — CMake Setup & Linking
 
 Reference: [Building LLVM with CMake](https://llvm.org/docs/CMake.html) | [llvm-config](https://llvm.org/docs/CommandGuide/llvm-config.html)
 
@@ -18,7 +18,7 @@ Build in-tree (inside the LLVM source tree) when you are:
 
 ---
 
-## Installing LLVM 20
+## Installing LLVM 22
 
 ```bash
 # macOS (Homebrew)
@@ -27,14 +27,14 @@ brew install llvm@20
 # CMake:   /opt/homebrew/opt/llvm@20/lib/cmake/llvm
 
 # Ubuntu / Debian
-apt install llvm-20-dev libclang-20-dev
-# Headers: /usr/lib/llvm-20/include
-# CMake:   /usr/lib/llvm-20/lib/cmake/llvm
+apt install llvm-22-dev libclang-20-dev
+# Headers: /usr/lib/llvm-22/include
+# CMake:   /usr/lib/llvm-22/lib/cmake/llvm
 
 # Build from source
 cmake -S llvm -B build \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_INSTALL_PREFIX=/usr/local/llvm-20 \
+  -DCMAKE_INSTALL_PREFIX=/usr/local/llvm-22 \
   -DLLVM_TARGETS_TO_BUILD="X86;AArch64;RISCV" \
   -DLLVM_ENABLE_PROJECTS="clang" \
   -G Ninja
@@ -43,8 +43,8 @@ ninja -C build install
 
 Locate the cmake config directory:
 ```bash
-llvm-config-20 --cmakedir
-# /usr/lib/llvm-20/lib/cmake/llvm
+llvm-config-22 --cmakedir
+# /usr/lib/llvm-22/lib/cmake/llvm
 ```
 
 ---
@@ -59,8 +59,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# ── Locate LLVM 20 ────────────────────────────────────────────────────────────
-find_package(LLVM 20 REQUIRED CONFIG)
+# ── Locate LLVM 22 ────────────────────────────────────────────────────────────
+find_package(LLVM 22 REQUIRED CONFIG)
 message(STATUS "LLVM version: ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM CMake dir: ${LLVM_DIR}")
 
@@ -100,7 +100,7 @@ target_link_libraries(mycompiler PRIVATE ${LLVM_LIBS})
 
 List all available components:
 ```bash
-llvm-config-20 --components
+llvm-config-22 --components
 ```
 
 ### Commonly used components
@@ -123,7 +123,7 @@ llvm-config-20 --components
 | `MC` | `MCContext`, `MCInstrInfo`, `MCRegisterInfo` — needed for MC layer |
 | `ExecutionEngine` | LLVM interpreter / JIT infrastructure |
 | `MCJIT` | MCJIT execution engine |
-| `OrcJIT` | ORC JIT v2 (preferred JIT in LLVM 20) |
+| `OrcJIT` | ORC JIT v2 (preferred JIT in LLVM 22) |
 | `X86CodeGen` | X86 target code generation |
 | `AArch64CodeGen` | AArch64 target code generation |
 | `RISCVCodeGen` | RISC-V target code generation |
@@ -136,12 +136,12 @@ llvm-config-20 --components
 # Using LLVM_DIR explicitly
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
-  -DLLVM_DIR=$(llvm-config-20 --cmakedir)
+  -DLLVM_DIR=$(llvm-config-22 --cmakedir)
 
 # Or via CMAKE_PREFIX_PATH
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/usr/local/llvm-20
+  -DCMAKE_PREFIX_PATH=/usr/local/llvm-22
 
 cmake --build build -j$(nproc)
 ```
@@ -208,9 +208,9 @@ Match `LLVM_ENABLE_ASSERTIONS` to what your LLVM install was built with to avoid
 If you have multiple LLVM versions installed, avoid mixing them:
 
 ```bash
-# Ensure cmake finds LLVM 20, not LLVM 19:
-export PATH=/usr/local/llvm-20/bin:$PATH
-cmake -DLLVM_DIR=/usr/local/llvm-20/lib/cmake/llvm ...
+# Ensure cmake finds LLVM 22, not LLVM 21:
+export PATH=/usr/local/llvm-22/bin:$PATH
+cmake -DLLVM_DIR=/usr/local/llvm-22/lib/cmake/llvm ...
 
 # Check version after configure:
 # The cmake output should show: "LLVM version: 20.x.x"
@@ -222,7 +222,7 @@ cmake -DLLVM_DIR=/usr/local/llvm-20/lib/cmake/llvm ...
 
 | Variable | Description |
 |----------|-------------|
-| `LLVM_PACKAGE_VERSION` | Full version string, e.g. `20.0.0` |
+| `LLVM_PACKAGE_VERSION` | Full version string, e.g. `22.1.2` |
 | `LLVM_VERSION_MAJOR` | Major version integer, e.g. `20` |
 | `LLVM_INCLUDE_DIRS` | Header search paths |
 | `LLVM_LIBRARY_DIRS` | Library search paths |
@@ -246,6 +246,6 @@ cmake -DLLVM_DIR=/usr/local/llvm-20/lib/cmake/llvm ...
 
 - **Do NOT** hardcode `-lLLVMCore` etc. — use `llvm_map_components_to_libnames` so CMake handles ordering and transitive deps.
 - **Do NOT** link LLVM libs into a pass plugin — the plugin is loaded into `opt` which already has them; double-linking causes symbol conflicts.
-- **Do NOT** mix LLVM 20 headers with LLVM 19 libraries — always verify `LLVM_PACKAGE_VERSION` in the cmake output.
+- **Do NOT** mix LLVM 22 headers with LLVM 21 libraries — always verify `LLVM_PACKAGE_VERSION` in the cmake output.
 - **Do NOT** forget to match RTTI and exception settings between your project and the LLVM install.
 - **ALWAYS** call `InitializeAll*()` target init functions before using `TargetRegistry` or creating `TargetMachine`.

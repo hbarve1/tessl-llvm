@@ -187,6 +187,12 @@ Value *Loaded = B.CreateLoad(I32, Alloca, "x.val");
 Value *GEP = B.CreateGEP(I32, ArrayPtr, {B.getInt64(0), B.getInt32(3)});
 // Inbounds GEP (UB if out of bounds, enables more optimization)
 Value *IGEP = B.CreateInBoundsGEP(I32, ArrayPtr, {Idx});
+// LLVM 22: GEPNoWrapFlags for richer no-wrap semantics
+Value *NGEP = B.CreateGEP(I32, ArrayPtr, {Idx}, "gep",
+                           GEPNoWrapFlags::noUnsignedWrap()); // no unsigned overflow
+
+// Get index type for a given address space (new in LLVM 22)
+IntegerType *IdxTy = B.getIndexTy(M->getDataLayout(), /*AddrSpace=*/0);
 
 // Casts
 Value *Ext  = B.CreateSExt(I8Val, I32);         // sign extend

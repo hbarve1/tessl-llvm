@@ -1,204 +1,207 @@
-# LLVM 20 Version Notes — Breaking Changes & Migration Guide
+# LLVM 22 Version Notes — Breaking Changes & Migration Guide
 
-Reference: [LLVM 20 Release Notes](https://releases.llvm.org/20.0.0/docs/ReleaseNotes.html)
+Reference: [LLVM 22 Release Notes](https://releases.llvm.org/22.1.0/docs/ReleaseNotes.html) | Source: `llvmorg-22.1.2`
 
-This page documents the most impactful API and behavioral changes when migrating to LLVM 20 from earlier versions (17, 18, 19). Read this before starting any migration — see the `version-sync` skill for the step-by-step workflow.
-
----
-
-## LLVM 20 — High-impact changes
-
-### 1. Legacy PassManager removed
-
-The `llvm/IR/LegacyPassManager.h` infrastructure (`legacy::PassManager`, `FunctionPass`, `ModulePass`, `getAnalysis<>()`, `PassManagerBuilder`) is **completely removed**.
-
-**Migrate to New Pass Manager (NPM):**
-
-| Legacy | NPM |
-|--------|-----|
-| `#include "llvm/IR/LegacyPassManager.h"` | `#include "llvm/Passes/PassBuilder.h"` |
-| `legacy::PassManager PM` | `ModulePassManager MPM` |
-| `PM.add(createMyPass())` | `MPM.addPass(MyPass())` |
-| `PM.run(M)` | `MPM.run(M, MAM)` |
-| `class MyPass : public FunctionPass` | `class MyPass : public PassInfoMixin<MyPass>` |
-| `void runOnFunction(Function &F)` | `PreservedAnalyses run(Function &, FunctionAnalysisManager &)` |
-| `getAnalysis<DominatorTreeWrapperPass>().getDomTree()` | `FAM.getResult<DominatorTreeAnalysis>(F)` |
-| `AU.setPreservesAll()` | `return PreservedAnalyses::all()` |
-
-> Exception: `TargetMachine::addPassesToEmitFile` still uses an internal legacy PM for MC emission. This API remains in LLVM 20.
+This page documents the most impactful API and behavioral changes when migrating to LLVM 22 from earlier versions. Read this before starting any migration — see the `version-sync` skill for the step-by-step workflow.
 
 ---
 
-### 2. Opaque pointers fully enforced
+## LLVM 22 — High-impact changes
 
-Typed pointers (`i8*`, `i32**`, etc.) are removed. All pointers are `ptr`.
+### 1. `Intrinsic::getDeclaration()` removed
 
-**Source changes required:**
+`getDeclaration()` is gone. Two replacements:
 
 ```cpp
-// LLVM 19 and earlier:
-Type *I8Ptr = Type::getInt8PtrTy(Ctx);
-PointerType *PT = PointerType::get(ElemTy, AddrSpace);
-auto *ElemTy = GEP->getPointerElementType();  // removed
+// Create or find an intrinsic declaration (most common — use this)
+Function *F = Intrinsic::getOrInsertDeclaration(M, Intrinsic::memcpy,
+                                                  {PtrTy, I64Ty});
 
-// LLVM 20:
-Type *Ptr = PointerType::get(Ctx, 0);         // ptr addrspace(0)
-Type *Ptr = Builder.getPtrTy();               // same, via IRBuilder
-// No getPointerElementType() — track element type in your own data structures
-```
-
-**LoadInst / StoreInst construction:**
-```cpp
-// LLVM 19: type inferred from pointer
-new LoadInst(Ptr, "val", InsertBefore);       // REMOVED
-
-// LLVM 20: explicit element type required
-new LoadInst(I32Ty, Ptr, "val", InsertBefore);
-Builder.CreateLoad(I32Ty, Ptr, "val");
-```
-
-**GEP construction:**
-```cpp
-// LLVM 20: always provide explicit element type
-Builder.CreateGEP(ElemTy, Ptr, Indices);
-Builder.CreateInBoundsGEP(ElemTy, Ptr, Indices);
+// Look up only if it already exists — returns nullptr if not
+Function *F = Intrinsic::getDeclarationIfExists(M, Intrinsic::memcpy);
 ```
 
 ---
 
-### 3. `llvm::Optional` removed
+### 2. DIBuilder: `DbgInstPtr` return type
 
-Replaced by `std::optional` (C++17 standard library).
+`insertDeclare`, `insertDbgValueIntrinsic`, `insertDbgAssign`, and `insertLabel`
+now return `DbgInstPtr` instead of `Instruction *`:
 
 ```cpp
-// LLVM 17-19 (deprecated from 17, removed in 20):
-#include "llvm/ADT/Optional.h"
+// LLVM 22: DbgInstPtr = PointerUnion<Instruction *, DbgRecord *>
+DbgInstPtr Result = DBuilder.insertDeclare(Alloca, DIVar, Expr, Loc, InsertPt);
+
+// If you need to branch on which kind was returned:
+if (auto *I = Result.dyn_cast<Instruction *>()) { /* ... */ }
+if (auto *R = Result.dyn_cast<DbgRecord *>())   { /* ... */ }
+
+// Most of the time you don't need to inspect the return — just ignore it
+DBuilder.insertDeclare(Alloca, DIVar, DBuilder.createExpression(), Loc, InsertPt);
+```
+
+**Why DbgInstPtr?** LLVM 22 completes the **DbgRecord** migration: debug intrinsics
+(`llvm.dbg.declare`, `llvm.dbg.value`) can now be represented as non-instruction
+`DbgRecord` nodes attached to instructions, separate from the instruction stream.
+This improves optimization accuracy for debug info.
+
+---
+
+### 3. New DIBuilder APIs
+
+```cpp
+// insertDeclareValue — separate from insertDeclare
+DbgInstPtr DBuilder.insertDeclareValue(Value *Val, DILocalVariable *Var,
+                                       DIExpression *Expr,
+                                       const DILocation *DL,
+                                       InsertPosition InsertPt);
+
+// insertDbgAssign — assignment tracking (new in LLVM 22)
+// Links a store instruction to its debug variable assignment
+DbgInstPtr DBuilder.insertDbgAssign(Instruction *LinkedInstr, Value *Val,
+                                    DILocalVariable *SrcVar,
+                                    DIExpression *ValExpr, Value *Addr,
+                                    DIExpression *AddrExpr,
+                                    const DILocation *DL);
+
+// createFunction: new UseKeyInstructions parameter (last, defaults false)
+DISubprogram *DBuilder.createFunction(
+    DIScope *Scope, StringRef Name, StringRef LinkageName, DIFile *File,
+    unsigned LineNo, DISubroutineType *Ty, unsigned ScopeLine,
+    DINode::DIFlags Flags = DINode::FlagZero,
+    DISubprogram::DISPFlags SPFlags = DISubprogram::SPFlagZero,
+    // ... existing params ...
+    bool UseKeyInstructions = false   // NEW in LLVM 22
+);
+```
+
+---
+
+### 4. CreateGEP — GEPNoWrapFlags parameter
+
+`CreateGEP` now accepts an optional `GEPNoWrapFlags` parameter:
+
+```cpp
+// LLVM 22 signature:
+Value *CreateGEP(Type *Ty, Value *Ptr, ArrayRef<Value *> IdxList,
+                 const Twine &Name = "",
+                 GEPNoWrapFlags NW = GEPNoWrapFlags::none()); // NEW
+
+// Flags:
+GEPNoWrapFlags::none()     // default — no assumptions
+GEPNoWrapFlags::inBounds() // same as CreateInBoundsGEP; UB if out of bounds
+GEPNoWrapFlags::noUnsignedWrap()  // pointer arithmetic doesn't unsigned-overflow
+GEPNoWrapFlags::noSignedWrap()    // pointer arithmetic doesn't signed-overflow
+
+// CreateInBoundsGEP is still a convenience wrapper:
+Value *CreateInBoundsGEP(Type *Ty, Value *Ptr, ArrayRef<Value *> IdxList,
+                         const Twine &Name = "");
+```
+
+---
+
+### 5. MCJIT removed — ORC JIT v2 only
+
+`llvm/ExecutionEngine/MCJIT.h` and related classes are removed.
+Use `LLJIT` or `LLLazyJIT` from `llvm/ExecutionEngine/Orc/LLJIT.h`.
+
+Note: `LLLazyJIT` is declared in `LLJIT.h` — there is no separate `LLLazyJIT.h`.
+
+```cpp
+// LLVM 22:
+#include "llvm/ExecutionEngine/Orc/LLJIT.h"  // contains both LLJIT and LLLazyJIT
+
+auto JIT     = ExitOnErr(LLJITBuilder().create());
+auto LazyJIT = ExitOnErr(LLLazyJITBuilder().create());
+```
+
+---
+
+### 6. Legacy PassManager — still present, but do not use for new code
+
+`llvm/IR/LegacyPassManager.h`, `legacy::PassManager`, `legacy::FunctionPassManager`,
+`FunctionPass`, `ModulePass` base classes in `llvm/Pass.h` are **still present** in
+LLVM 22 for backward compatibility and for `TargetMachine::addPassesToEmitFile`.
+
+**Do not use them for new pass development.** All new passes must use NPM
+(`PassInfoMixin<T>`, `run(IRUnit &, AnalysisManager &)`, `PreservedAnalyses`).
+
+```cpp
+// Still works in LLVM 22 (for codegen emission only):
+legacy::PassManager PM;
+TM->addPassesToEmitFile(PM, OS, nullptr, CodeGenFileType::ObjectFile);
+PM.run(*M);
+
+// New pass development — always use NPM:
+class MyPass : public PassInfoMixin<MyPass> {
+public:
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM);
+};
+```
+
+---
+
+### 7. `getIndexTy()` — new IRBuilder method
+
+```cpp
+// Get the integer type appropriate for pointer indexing in a given address space
+IntegerType *IdxTy = B.getIndexTy(M->getDataLayout(), /*AddrSpace=*/0);
+// Equivalent to DL.getIndexType(B.getPtrTy(AddrSpace))
+```
+
+---
+
+## LLVM 20/21 → 22 cumulative changes (still relevant)
+
+### Opaque pointers (enforced since LLVM 17, now the only option)
+
+```cpp
+// All pointer construction:
+Type *Ptr = B.getPtrTy();                    // ptr (addrspace 0)
+Type *Ptr = PointerType::get(Ctx, AS);       // ptr addrspaceN
+
+// LoadInst / StoreInst — explicit element type required:
+B.CreateLoad(ElemTy, Ptr, "val");
+B.CreateStore(Val, Ptr);
+
+// GEP — explicit element type required:
+B.CreateGEP(ElemTy, Ptr, Indices);
+B.CreateInBoundsGEP(ElemTy, Ptr, Indices);
+```
+
+### `llvm::Optional` removed (since LLVM 17)
+
+```cpp
+// Before:
 llvm::Optional<int> X = llvm::None;
-if (X.hasValue()) { ... X.getValue() ... }
-
-// LLVM 20:
+// After:
 std::optional<int> X = std::nullopt;
-if (X.has_value()) { ... X.value() ... }
-// or: if (X) { ... *X ... }
 ```
 
-Also removed: `llvm::None` → `std::nullopt`.
+### Header moves (completed by LLVM 18, still required)
 
----
-
-### 4. Header path changes
-
-| Old path | New path (LLVM 20) |
-|----------|-------------------|
-| `llvm/ADT/Optional.h` | Removed — use `<optional>` |
-| `llvm/ADT/None.h` | Removed — use `<optional>` |
+| Old path | New path |
+|----------|----------|
 | `llvm/ADT/Triple.h` | `llvm/TargetParser/Triple.h` |
 | `llvm/Support/Host.h` | `llvm/TargetParser/Host.h` |
 | `llvm/Support/TargetRegistry.h` | `llvm/MC/TargetRegistry.h` |
-| `llvm/Support/TargetSelect.h` | Unchanged |
-| `llvm/IR/LegacyPassManager.h` | Removed |
-| `llvm/Transforms/IPO/PassManagerBuilder.h` | Removed |
 
 ---
 
-### 5. `Intrinsic::getDeclaration()` deprecated → `getOrInsertDeclaration()`
-
-```cpp
-// Deprecated (LLVM 20 warns, future versions will remove):
-Function *F = Intrinsic::getDeclaration(M, Intrinsic::memcpy, {PtrTy, I64Ty});
-
-// LLVM 20 preferred:
-Function *F = Intrinsic::getOrInsertDeclaration(M, Intrinsic::memcpy,
-                                                  {PtrTy, I64Ty});
-```
-
----
-
-### 6. C++17 required
-
-LLVM 20 itself requires C++17. Your out-of-tree project must also build with C++17:
-
-```cmake
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-```
-
-C++14 compatibility shims in your code (e.g., manual `std::make_unique` reimplementations, `llvm::make_unique`) should be replaced with standard C++17 equivalents.
-
----
-
-## LLVM 19 → 20 specific changes
-
-| Area | Change |
-|------|--------|
-| Legacy PM | Fully removed (was deprecated since LLVM 17) |
-| Typed pointers | Fully removed (opaque pointers enforced since LLVM 17) |
-| `llvm::Optional` | Fully removed (deprecated since LLVM 16) |
-| `TargetRegistry` header | Moved to `llvm/MC/TargetRegistry.h` (done in LLVM 14, enforced now) |
-| `PassManagerBuilder` | Removed — use `PassBuilder` |
-| `createXYZPass()` factory functions | Most removed — use pass constructors directly: `XYZPass()` |
-
----
-
-## LLVM 18 → 19 changes (still relevant if migrating from 18)
-
-| Area | Change |
-|------|--------|
-| `AttributeList::get()` | Signature changed — `AttrBuilder` no longer takes `LLVMContext` in constructor |
-| `TargetLibraryInfo::has()` | Replaced by `getLibFunc()` pattern |
-| `MemorySSA` | Some analysis invalidation rules changed |
-| `DIBuilder` | Minor API cleanups |
-| `SelectionDAG::getSetCC()` | Signature adjusted |
-
----
-
-## LLVM 17 → 18 changes (still relevant if migrating from 17)
-
-| Area | Change |
-|------|--------|
-| `Triple.h` | Moved to `llvm/TargetParser/Triple.h` |
-| `Host.h` | Moved to `llvm/TargetParser/Host.h` |
-| `TargetParser/` | New directory — many target parser headers moved here |
-| Opaque pointers | `getPointerElementType()` removed in 18 |
-| `llvm::Optional` | Deprecated — migration to `std::optional` expected |
-
----
-
-## Checking version at compile time
-
-```cpp
-#include "llvm/Config/llvm-config.h"
-
-#if LLVM_VERSION_MAJOR >= 20
-  // LLVM 20+ API
-  auto *F = Intrinsic::getOrInsertDeclaration(M, ID, Types);
-#elif LLVM_VERSION_MAJOR >= 17
-  // LLVM 17-19 API
-  auto *F = Intrinsic::getDeclaration(M, ID, Types);
-#endif
-```
-
-For LLVM 20-only codebases: **remove all version guards** for < 20 and use the current API directly. Guards add maintenance cost and are only warranted for libraries that must support multiple LLVM versions simultaneously.
-
----
-
-## Quick migration checklist
+## Migration checklist (→ LLVM 22)
 
 ```
-[ ] Legacy PM: replace with NPM (PassInfoMixin, FunctionAnalysisManager, etc.)
-[ ] Typed pointers: audit all PointerType::get(ElemTy, ...) calls
-[ ] LoadInst/StoreInst: add explicit element type argument
-[ ] GEP: add explicit element type argument
-[ ] llvm::Optional → std::optional
-[ ] llvm::None → std::nullopt
-[ ] #include "llvm/ADT/Optional.h" → remove (use <optional>)
-[ ] #include "llvm/ADT/Triple.h" → "llvm/TargetParser/Triple.h"
-[ ] #include "llvm/Support/Host.h" → "llvm/TargetParser/Host.h"
-[ ] Intrinsic::getDeclaration → getOrInsertDeclaration
-[ ] createXYZPass() → XYZPass() constructors
-[ ] PassManagerBuilder → PassBuilder
-[ ] C++17: set CMAKE_CXX_STANDARD 17
-[ ] LLVM_VERSION_MAJOR guards: remove < 20 branches
-[ ] Rebuild intrinsics_gen if any .td files changed
-[ ] Run full test suite after migration
+[ ] Intrinsic::getDeclaration()    → getOrInsertDeclaration() or getDeclarationIfExists()
+[ ] DIBuilder insertDeclare()      → return type is now DbgInstPtr — update any Instruction* captures
+[ ] DIBuilder createFunction()     → new UseKeyInstructions param (last, default false — safe to ignore)
+[ ] MCJIT                          → LLJIT / LLLazyJIT from llvm/ExecutionEngine/Orc/LLJIT.h
+[ ] LLLazyJIT.h include            → use LLJIT.h (LLLazyJIT is declared there)
+[ ] Legacy PM for new passes       → replace with PassInfoMixin + NPM
+[ ] Opaque pointers                → remove any getPointerElementType() calls
+[ ] llvm::Optional                 → std::optional
+[ ] llvm/ADT/Triple.h              → llvm/TargetParser/Triple.h
+[ ] llvm/Support/Host.h            → llvm/TargetParser/Host.h
+[ ] C++ standard                   → CMAKE_CXX_STANDARD 17 minimum
+[ ] GEP inbounds                   → optionally adopt GEPNoWrapFlags for richer semantics
+[ ] Rebuild and run all tests
 ```
