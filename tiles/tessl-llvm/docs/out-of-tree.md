@@ -22,12 +22,12 @@ Build in-tree (inside the LLVM source tree) when you are:
 
 ```bash
 # macOS (Homebrew)
-brew install llvm@20
-# Headers: /opt/homebrew/opt/llvm@20/include
-# CMake:   /opt/homebrew/opt/llvm@20/lib/cmake/llvm
+brew install llvm@22
+# Headers: /opt/homebrew/opt/llvm@22/include
+# CMake:   /opt/homebrew/opt/llvm@22/lib/cmake/llvm
 
 # Ubuntu / Debian
-apt install llvm-22-dev libclang-20-dev
+apt install llvm-22-dev libclang-22-dev
 # Headers: /usr/lib/llvm-22/include
 # CMake:   /usr/lib/llvm-22/lib/cmake/llvm
 
@@ -213,7 +213,7 @@ export PATH=/usr/local/llvm-22/bin:$PATH
 cmake -DLLVM_DIR=/usr/local/llvm-22/lib/cmake/llvm ...
 
 # Check version after configure:
-# The cmake output should show: "LLVM version: 20.x.x"
+# The cmake output should show: "LLVM version: 22.x.x"
 ```
 
 ---
@@ -223,7 +223,7 @@ cmake -DLLVM_DIR=/usr/local/llvm-22/lib/cmake/llvm ...
 | Variable | Description |
 |----------|-------------|
 | `LLVM_PACKAGE_VERSION` | Full version string, e.g. `22.1.2` |
-| `LLVM_VERSION_MAJOR` | Major version integer, e.g. `20` |
+| `LLVM_VERSION_MAJOR` | Major version integer, e.g. `22` |
 | `LLVM_INCLUDE_DIRS` | Header search paths |
 | `LLVM_LIBRARY_DIRS` | Library search paths |
 | `LLVM_DEFINITIONS` | Compiler definitions (e.g. `-D_GNU_SOURCE`) |

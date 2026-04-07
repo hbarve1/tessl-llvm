@@ -1,9 +1,9 @@
 ---
 name: add-intrinsic
-description: Add a new LLVM IR intrinsic in LLVM 20. Covers TableGen definition, header regeneration, IRBuilder call-site usage, verifier rules, and lit testing.
+description: Add a new LLVM IR intrinsic in LLVM 22. Covers TableGen definition, header regeneration, IRBuilder call-site usage, verifier rules, and lit testing.
 ---
 
-# Skill: Add a New LLVM IR Intrinsic (LLVM 20)
+# Skill: Add a New LLVM IR Intrinsic (LLVM 22)
 
 Use this skill when the user wants to add a new first-class LLVM IR intrinsic — a built-in function with a well-known name (`llvm.*`) that the optimizer and backends can reason about specially.
 
@@ -41,7 +41,7 @@ The function name is derived from the `def` name:
 - `int_my_intrinsic` → `llvm.my.intrinsic`
 - `int_x86_my_op`   → `llvm.x86.my.op`
 
-### Common intrinsic properties (LLVM 20)
+### Common intrinsic properties (LLVM 22)
 
 | Property | Meaning |
 |----------|---------|
@@ -61,7 +61,7 @@ The function name is derived from the `def` name:
 ```tablegen
 llvm_i1_ty    llvm_i8_ty    llvm_i16_ty   llvm_i32_ty   llvm_i64_ty
 llvm_half_ty  llvm_float_ty llvm_double_ty
-llvm_ptr_ty                               // opaque pointer (LLVM 20 default)
+llvm_ptr_ty                               // opaque pointer (LLVM 22 default)
 llvm_anyint_ty  llvm_anyfloat_ty          // overloaded
 llvm_anyvector_ty
 llvm_void_ty
@@ -109,7 +109,7 @@ llvm::Intrinsic::my_intrinsic   // enum value
 
 For a target-specific intrinsic to generate real machine code:
 
-### GlobalISel path (preferred in LLVM 20)
+### GlobalISel path (preferred in LLVM 22)
 
 Add a `GINodeEquiv` entry in the target's `.td` file and a `GICombineRule` or
 `GISelCombinerPass` entry, or handle it in `<Target>LegalizerInfo.cpp`:
@@ -155,7 +155,7 @@ SDValue <Target>TargetLowering::LowerINTRINSIC_WO_CHAIN(
 // Inside a function body:
 IRBuilder<> Builder(InsertBB, InsertBB->end());
 
-// Option A: IRBuilder::CreateIntrinsic (LLVM 20 preferred API)
+// Option A: IRBuilder::CreateIntrinsic (LLVM 22 preferred API)
 Value *Result = Builder.CreateIntrinsic(
     Intrinsic::my_intrinsic,
     {Builder.getInt32Ty()},   // type arguments for overloaded intrinsics; {} if not overloaded
@@ -168,7 +168,7 @@ Function *F = Intrinsic::getOrInsertDeclaration(M, Intrinsic::my_intrinsic,
 Value *Result2 = Builder.CreateCall(F, {ArgA, ArgB});
 ```
 
-> In LLVM 20, `Intrinsic::getDeclaration` is **deprecated** — use
+> In LLVM 22, `Intrinsic::getDeclaration()` is **removed** — use
 > `Intrinsic::getOrInsertDeclaration` instead.
 
 ---
@@ -243,9 +243,9 @@ case Intrinsic::my_intrinsic: {
 
 ## Common mistakes to avoid
 
-- **Do NOT** use `Intrinsic::getDeclaration()` — it is deprecated in LLVM 20; use `getOrInsertDeclaration()`.
+- **Do NOT** use `Intrinsic::getDeclaration()` — it is removed in LLVM 22; use `getOrInsertDeclaration()` or `getDeclarationIfExists()`.
 - **Do NOT** forget to rebuild `intrinsics_gen` after editing `.td` files.
-- **Do NOT** use named pointer types (`i8*`) in intrinsic signatures — LLVM 20 uses **opaque pointers** (`ptr`) everywhere.
+- **Do NOT** use named pointer types (`i8*`) in intrinsic signatures — LLVM 22 uses **opaque pointers** (`ptr`) everywhere.
 - **Do NOT** declare the intrinsic with `declare` in your `.td` and also hand-write a `declare` in IR — the verifier will reject duplicate declarations with mismatched types.
 - **ALWAYS** set appropriate memory attributes (`IntrNoMem`, `IntrReadMem`, etc.) — wrong attributes block valid optimizations or allow incorrect ones.
 - **ALWAYS** test with `-passes=verify` before testing with optimization passes.

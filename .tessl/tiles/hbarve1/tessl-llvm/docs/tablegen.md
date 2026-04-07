@@ -1,4 +1,4 @@
-# TableGen — Syntax, Backends, and Usage (LLVM 20)
+# TableGen — Syntax, Backends, and Usage (LLVM 22)
 
 Reference: [TableGen Overview](https://llvm.org/docs/TableGen/index.html) | [TableGen Language Reference](https://llvm.org/docs/TableGen/ProgRef.html)
 

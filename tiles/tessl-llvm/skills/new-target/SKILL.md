@@ -1,11 +1,11 @@
 ---
 name: new-target-backend
-description: Add a new target backend skeleton to LLVM 20. Covers CMake registration, TargetInfo, TargetMachine, MCTargetDesc, minimal TableGen register/instruction defs, and wiring into the LLVM build.
+description: Add a new target backend skeleton to LLVM 22. Covers CMake registration, TargetInfo, TargetMachine, MCTargetDesc, minimal TableGen register/instruction defs, and wiring into the LLVM build.
 ---
 
-# Skill: Add a New Target Backend Skeleton (LLVM 20)
+# Skill: Add a New Target Backend Skeleton (LLVM 22)
 
-Use this skill when the user wants to add a brand-new ISA target to LLVM 20.
+Use this skill when the user wants to add a brand-new ISA target to LLVM 22.
 This produces a compilable, registered skeleton — not a production backend.
 Extend each layer incrementally after the skeleton builds.
 

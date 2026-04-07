@@ -1,4 +1,4 @@
-# Code Generation — SelectionDAG, GlobalISel, MachineFunction (LLVM 20)
+# Code Generation — SelectionDAG, GlobalISel, MachineFunction (LLVM 22)
 
 Reference: [CodeGenerator](https://llvm.org/docs/CodeGenerator.html) | [GlobalISel](https://llvm.org/docs/GlobalISel/index.html)
 
@@ -22,7 +22,7 @@ LLVM IR (Module/Function)
     ▼ AsmPrinter / MCStreamer           ← emit .s or .o
 ```
 
-Two ISel paths exist in LLVM 20:
+Two ISel paths exist in LLVM 22:
 
 | Path | Status | Use when |
 |------|--------|---------|
@@ -68,7 +68,7 @@ M->setTargetTriple(Triple);
 
 ```cpp
 #include "llvm/CodeGen/TargetPassConfig.h"
-#include "llvm/IR/LegacyPassManager.h"  // only for addPassesToEmitFile in LLVM 20
+#include "llvm/IR/LegacyPassManager.h"  // only for addPassesToEmitFile in LLVM 22
 
 // Emit to file (uses legacy PM internally — this API remains)
 SmallVector<char, 0> ObjBuffer;
@@ -222,7 +222,7 @@ InstructionSelect   → generic MI → target MI
 G_ADD, G_SUB, G_MUL, G_SDIV, G_UDIV
 G_AND, G_OR, G_XOR, G_SHL, G_ASHR, G_LSHR
 G_LOAD, G_STORE
-G_GEP (→ G_PTR_ADD in LLVM 20)
+G_GEP (→ G_PTR_ADD in LLVM 22)
 G_ICMP, G_FCMP
 G_BR, G_BRCOND
 G_PHI

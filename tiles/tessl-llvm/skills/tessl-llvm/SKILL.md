@@ -1,11 +1,11 @@
 ---
 name: add-npm-pass
-description: Add a New Pass Manager (NPM) pass to an LLVM 20 in-tree or out-of-tree project. Covers FunctionPass, ModulePass, LoopPass, and CGSCCPass kinds, registration, pipeline wiring, CMake, and lit testing.
+description: Add a New Pass Manager (NPM) pass to an LLVM 22 in-tree or out-of-tree project. Covers FunctionPass, ModulePass, LoopPass, and CGSCCPass kinds, registration, pipeline wiring, CMake, and lit testing.
 ---
 
-# Skill: Add a New Pass Manager (NPM) Pass (LLVM 20)
+# Skill: Add a New Pass Manager (NPM) Pass (LLVM 22)
 
-Use this skill whenever the user wants to create a new optimization or analysis pass using the LLVM New Pass Manager (NPM). All passes in LLVM 20 use NPM — the legacy PassManager is removed.
+Use this skill whenever the user wants to create a new optimization or analysis pass using the LLVM New Pass Manager (NPM). All passes in LLVM 22 use NPM — the legacy PassManager is removed.
 
 ---
 
@@ -32,7 +32,7 @@ For an **analysis pass** inherit from `AnalysisInfoMixin<YourPass>` and return a
 
 ```cpp
 //===- <PassName>.h - <One-line description> --------------------*- C++ -*-===//
-// LLVM 20 New Pass Manager pass
+// LLVM 22 New Pass Manager pass
 //===----------------------------------------------------------------------===//
 #ifndef LLVM_TRANSFORMS_<CATEGORY>_<PASSNAME>_H
 #define LLVM_TRANSFORMS_<CATEGORY>_<PASSNAME>_H
@@ -65,7 +65,7 @@ Replace `Function` / `FunctionAnalysisManager` with the appropriate IR unit from
 
 ```cpp
 //===- <PassName>.cpp - <One-line description> ----------------------------===//
-// LLVM 20 New Pass Manager pass implementation
+// LLVM 22 New Pass Manager pass implementation
 //===----------------------------------------------------------------------===//
 #include "llvm/Transforms/<Category>/<PassName>.h"
 #include "llvm/IR/Function.h"
@@ -86,7 +86,7 @@ PreservedAnalyses <PassName>::run(Function &F, FunctionAnalysisManager &FAM) {
 }
 ```
 
-Key LLVM 20 APIs to know inside `run()`:
+Key LLVM 22 APIs to know inside `run()`:
 - `FAM.getResult<DominatorTreeAnalysis>(F)` — get a cached analysis result.
 - `FAM.invalidate(F, PA)` — explicitly invalidate analyses after modification.
 - `llvm::make_range(F.begin(), F.end())` — iterate basic blocks.
@@ -239,7 +239,7 @@ Expected: IR printed without crash, with any expected transforms applied.
 
 ---
 
-## Quick reference — LLVM 20 NPM cheat sheet
+## Quick reference — LLVM 22 NPM cheat sheet
 
 ```
 PreservedAnalyses::all()         — no IR changed
@@ -261,7 +261,7 @@ MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
 
 ## Common mistakes to avoid
 
-- **Do NOT** use `legacy::PassManager`, `FunctionPass`, `ModulePass` base classes — these are removed in LLVM 20.
+- **Do NOT** use `legacy::PassManager`, `FunctionPass`, `ModulePass` for new passes — LLVM 22 requires NPM (`PassInfoMixin`) for new pass development (legacy types may still appear for codegen emission APIs).
 - **Do NOT** call `AU.setPreservesAll()` or `getAnalysis<>()` — NPM uses `FAM.getResult<>()`.
 - **Do NOT** forget `PassInfoMixin<YourPass>` — required for pass identification.
 - **Do NOT** hold raw pointers to analysis results across IR mutations — re-query after any modification.

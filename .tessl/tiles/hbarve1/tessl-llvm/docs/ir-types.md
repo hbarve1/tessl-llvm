@@ -1,4 +1,4 @@
-# LLVM IR — Types, Values, and Constants (LLVM 20)
+# LLVM IR — Types, Values, and Constants (LLVM 22)
 
 Reference: [LLVM LangRef](https://llvm.org/docs/LangReference.html) | [IRBuilder Doxygen](https://llvm.org/doxygen/classllvm_1_1IRBuilderBase.html)
 
@@ -12,7 +12,7 @@ All LLVM types inherit from `llvm::Type`. Types are uniqued per `LLVMContext` �
 Type
 ├── IntegerType         — i1, i8, i16, i32, i64, i128, arbitrary iN
 ├── FloatingPointType   — half, bfloat, float, double, x86_fp80, fp128
-├── PointerType         — ptr (opaque, LLVM 20: no typed pointers)
+├── PointerType         — ptr (opaque, LLVM 22: no typed pointers)
 ├── ArrayType           — [N x T]
 ├── FixedVectorType     — <N x T>
 ├── ScalableVectorType  — <vscale x N x T>  (SVE / RISC-V V)
@@ -23,7 +23,7 @@ Type
 
 ---
 
-## Getting types (LLVM 20)
+## Getting types (LLVM 22)
 
 ```cpp
 LLVMContext &Ctx = M.getContext();
@@ -42,7 +42,7 @@ Type *F64 = B.getDoubleTy();  // double
 Type *F16 = B.getHalfTy();    // half
 Type *BF  = B.getBFloatTy();  // bfloat
 
-// Pointer — LLVM 20: opaque only, no element type
+// Pointer — LLVM 22: opaque only, no element type
 Type *Ptr    = B.getPtrTy();          // ptr (address space 0)
 Type *PtrAS1 = B.getPtrTy(1);         // ptr addrspace(1)
 // Equivalent: PointerType::get(Ctx, 0)
@@ -97,7 +97,7 @@ Value
 │   ├── ConstantArray / ConstantStruct / ConstantVector
 │   ├── ConstantExpr         — constant expressions (GEP, bitcast, etc.)
 │   ├── UndefValue           — undef
-│   ├── PoisonValue          — poison (LLVM 20 preferred over undef for UB)
+│   ├── PoisonValue          — poison (LLVM 22 preferred over undef for UB)
 │   └── GlobalValue
 │       ├── GlobalVariable
 │       └── Function
@@ -178,7 +178,7 @@ Value *Slt = B.CreateICmpSLT(A, B_val);        // signed less-than
 Value *Ult = B.CreateICmpULT(A, B_val);        // unsigned less-than
 Value *Flt = B.CreateFCmpOLT(A, B_val);        // float ordered less-than
 
-// Memory (LLVM 20: must provide explicit element type for load/store)
+// Memory (LLVM 22: must provide explicit element type for load/store)
 AllocaInst *Alloca = B.CreateAlloca(I32, nullptr, "x");
 B.CreateStore(Value42, Alloca);
 Value *Loaded = B.CreateLoad(I32, Alloca, "x.val");
@@ -187,6 +187,12 @@ Value *Loaded = B.CreateLoad(I32, Alloca, "x.val");
 Value *GEP = B.CreateGEP(I32, ArrayPtr, {B.getInt64(0), B.getInt32(3)});
 // Inbounds GEP (UB if out of bounds, enables more optimization)
 Value *IGEP = B.CreateInBoundsGEP(I32, ArrayPtr, {Idx});
+// LLVM 22: GEPNoWrapFlags for richer no-wrap semantics
+Value *NGEP = B.CreateGEP(I32, ArrayPtr, {Idx}, "gep",
+                           GEPNoWrapFlags::noUnsignedWrap()); // no unsigned overflow
+
+// Get index type for a given address space (new in LLVM 22)
+IntegerType *IdxTy = B.getIndexTy(M->getDataLayout(), /*AddrSpace=*/0);
 
 // Casts
 Value *Ext  = B.CreateSExt(I8Val, I32);         // sign extend

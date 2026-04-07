@@ -1,7 +1,7 @@
 {
   "name": "hbarve1/tessl-llvm",
   "version": "0.3.0",
-  "summary": "LLVM 20.x tile for building compilers, language runtimes, and out-of-tree tooling",
+  "summary": "LLVM 22.x tile for building compilers, language runtimes, and out-of-tree tooling",
   "docs": "docs/index.md",
   "rules": {
     "new-programming-language": {

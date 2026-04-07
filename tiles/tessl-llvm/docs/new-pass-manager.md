@@ -1,8 +1,8 @@
-# New Pass Manager (NPM) — Architecture & Usage (LLVM 20)
+# New Pass Manager (NPM) — Architecture & Usage (LLVM 22)
 
 Reference: [WritingAnLLVMNewPMPass](https://llvm.org/docs/WritingAnLLVMNewPMPass.html) | [NewPassManager](https://llvm.org/docs/NewPassManager.html)
 
-> The legacy `PassManager` is **removed** in LLVM 20. NPM is the only pass manager.
+> In LLVM 22, the legacy `PassManager` types still exist for compatibility (e.g. `TargetMachine::addPassesToEmitFile`), but **all new passes must use NPM**. Never build new work on `FunctionPass` / `ModulePass` / `getAnalysis<>()`.
 
 ---
 

@@ -1,34 +1,34 @@
 ---
 name: out-of-tree-setup
-description: Scaffold an out-of-tree LLVM 20 compiler/language project from scratch. Covers CMake configuration, finding LLVM, linking components, a minimal LLVMContext driver, and build instructions.
+description: Scaffold an out-of-tree LLVM 22 compiler/language project from scratch. Covers CMake configuration, finding LLVM, linking components, a minimal LLVMContext driver, and build instructions.
 ---
 
-# Skill: Set Up an Out-of-Tree LLVM 20 Project
+# Skill: Set Up an Out-of-Tree LLVM 22 Project
 
-Use this skill when the user wants to start a new compiler, language runtime, or LLVM-based tool that builds **against** an installed LLVM 20 rather than inside the LLVM source tree.
+Use this skill when the user wants to start a new compiler, language runtime, or LLVM-based tool that builds **against** an installed LLVM 22 rather than inside the LLVM source tree.
 
 ---
 
 ## Step 0 — Prerequisites
 
-Confirm the user has LLVM 20 installed. Common locations:
+Confirm the user has LLVM 22 installed. Common locations:
 
 ```bash
 # Homebrew (macOS)
-brew install llvm@20
-# Path: /opt/homebrew/opt/llvm@20
+brew install llvm@22
+# Path: /opt/homebrew/opt/llvm@22
 
 # apt (Ubuntu/Debian)
-apt install llvm-20-dev
-# Path: /usr/lib/llvm-20
+apt install llvm-22-dev libclang-22-dev
+# Path: /usr/lib/llvm-22
 
 # From source
-cmake --install build --prefix /usr/local/llvm-20
+cmake --install build --prefix /usr/local/llvm-22
 ```
 
 Find the cmake config dir:
 ```bash
-llvm-config-20 --cmakedir
+llvm-config-22 --cmakedir
 # or
 find /usr -name "LLVMConfig.cmake" 2>/dev/null
 ```
@@ -62,7 +62,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# ── Find LLVM 20 ──────────────────────────────────────────────────────────────
+# ── Find LLVM 22 ──────────────────────────────────────────────────────────────
 find_package(LLVM 22 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -173,11 +173,11 @@ int main(int argc, char **argv) {
 ## Step 4 — Build
 
 ```bash
-# Configure — point CMAKE_PREFIX_PATH at your LLVM 20 install prefix
+# Configure — point CMAKE_PREFIX_PATH at your LLVM 22 install prefix
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/path/to/llvm-20/install
-  # or: -DLLVM_DIR=$(llvm-config-20 --cmakedir)
+  -DCMAKE_PREFIX_PATH=/path/to/llvm-22/install
+  # or: -DLLVM_DIR=$(llvm-config-22 --cmakedir)
 
 # Build
 cmake --build build -j$(nproc)
@@ -237,7 +237,7 @@ set_target_properties(MyPassPlugin PROPERTIES
 
 - **Do NOT** use `llvm-config --libs` output directly in CMake — use `llvm_map_components_to_libnames` instead; the cmake integration handles RPATH and ordering correctly.
 - **Do NOT** call `InitializeAll*()` functions after constructing a `TargetMachine` — initialize before.
-- **Do NOT** mix LLVM 20 headers with a different LLVM runtime version — ensure cmake finds the correct `LLVMConfig.cmake`.
+- **Do NOT** mix LLVM 22 headers with a different LLVM runtime version — ensure cmake finds the correct `LLVMConfig.cmake`.
 - **Do NOT** use `new Module(...)` — use `std::make_unique<Module>(...)`.
 - **Do NOT** store raw `Value *` pointers after IR modifications that can RAUW (Replace All Uses With) them.
 - **ALWAYS** call `verifyModule` during development; it catches IR invariant violations early.

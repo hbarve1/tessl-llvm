@@ -1,18 +1,18 @@
 ---
 name: version-sync
-description: Migrate an out-of-tree LLVM project to a new LLVM version (e.g., LLVM 19 → 20). Covers CMake bump, common LLVM 20 API breakages, header moves, pass renames, and opaque pointer migration.
+description: Migrate an out-of-tree LLVM project to a new LLVM version (e.g., LLVM 21 → 22). Covers CMake bump, common LLVM 22 API breakages, header moves, pass renames, and opaque pointer migration.
 ---
 
-# Skill: Sync Out-of-Tree Project to a New LLVM Version (→ LLVM 20)
+# Skill: Sync Out-of-Tree Project to a New LLVM Version (→ LLVM 22)
 
-Use this skill when the user wants to upgrade an existing out-of-tree LLVM project to LLVM 20 from an older version (17, 18, or 19). This is a systematic, checklist-driven process.
+Use this skill when the user wants to upgrade an existing out-of-tree LLVM project to LLVM 22 from an older version (19, 20, or 21). This is a systematic, checklist-driven process.
 
 ---
 
 ## Step 0 — Snapshot and branch
 
 ```bash
-git checkout -b llvm-20-migration
+git checkout -b llvm-22-migration
 ```
 
 Never migrate on `main` — the process produces many intermediate build failures.
@@ -25,18 +25,18 @@ In `CMakeLists.txt`:
 
 ```cmake
 # Before:
-find_package(LLVM 19 REQUIRED CONFIG)
+find_package(LLVM 21 REQUIRED CONFIG)
 
 # After:
-find_package(LLVM 20 REQUIRED CONFIG)
+find_package(LLVM 22 REQUIRED CONFIG)
 ```
 
-Point `LLVM_DIR` or `CMAKE_PREFIX_PATH` at your LLVM 20 install:
+Point `LLVM_DIR` or `CMAKE_PREFIX_PATH` at your LLVM 22 install:
 
 ```bash
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Debug \
-  -DLLVM_DIR=$(llvm-config-20 --cmakedir)
+  -DLLVM_DIR=$(llvm-config-22 --cmakedir)
 ```
 
 ---
@@ -51,9 +51,9 @@ Work through errors category by category using the reference below.
 
 ---
 
-## Step 3 — Fix: Opaque pointers (LLVM 15+, enforced in 17+, fully removed in 20)
+## Step 3 — Fix: Opaque pointers (LLVM 15+, enforced in 17+)
 
-LLVM 20 has **no typed pointer types**. All pointers are `ptr`.
+LLVM 22 has **no typed pointer types**. All pointers are `ptr`.
 
 | Old (typed) | New (opaque) |
 |-------------|--------------|
@@ -68,14 +68,14 @@ Wherever your code inferred type from a pointer, store the type separately.
 
 ---
 
-## Step 4 — Fix: Removed legacy Pass Manager APIs
+## Step 4 — Fix: Legacy Pass Manager vs NPM
 
-The legacy `PassManager` is **removed** in LLVM 20.
+The legacy `PassManager` headers and types **still exist** in LLVM 22 for compatibility (e.g. `TargetMachine::addPassesToEmitFile`). **Do not** use them for new passes — migrate custom passes to NPM.
 
-| Removed (legacy PM) | Replacement (NPM) |
+| Legacy (do not use for new passes) | Replacement (NPM) |
 |--------------------|-------------------|
-| `#include "llvm/IR/LegacyPassManager.h"` | `#include "llvm/Passes/PassBuilder.h"` |
-| `legacy::PassManager PM` | `ModulePassManager MPM` |
+| `#include "llvm/IR/LegacyPassManager.h"` (for custom passes) | `#include "llvm/Passes/PassBuilder.h"` |
+| `legacy::PassManager PM` (for custom passes) | `ModulePassManager MPM` |
 | `PM.add(createMyPass())` | `MPM.addPass(MyPass())` |
 | `PM.run(M)` | `MPM.run(M, MAM)` |
 | `FunctionPass`, `ModulePass` base classes | `PassInfoMixin<T>` + `run()` method |
@@ -87,7 +87,7 @@ See the **add-npm-pass** skill for full NPM pass structure.
 
 ---
 
-## Step 5 — Fix: Renamed and moved APIs (LLVM 17 → 20 cumulative)
+## Step 5 — Fix: Renamed and moved APIs (cumulative through LLVM 22)
 
 ### Headers moved
 
@@ -107,13 +107,13 @@ See the **add-npm-pass** skill for full NPM pass structure.
 | `llvm::None` | `std::nullopt` | 17+ |
 | `llvm::MaybeAlign` | `MaybeAlign` (still in llvm ns) | — |
 | `AttributeList::get(Ctx, AS, Attrs)` | signature changed; check headers | 18+ |
-| `Intrinsic::getDeclaration()` | `Intrinsic::getOrInsertDeclaration()` | 20 |
+| `Intrinsic::getDeclaration()` | `Intrinsic::getOrInsertDeclaration()` or `getDeclarationIfExists()` | removed in 22 |
 | `DIBuilder::finalize()` | Still works | — |
 | `TargetLibraryInfo::has()` | `TargetLibraryInfo::getLibFunc()` | 18+ |
 
 ### Pass name changes (pipeline strings)
 
-| Old pipeline string | New (LLVM 20) |
+| Old pipeline string | New (LLVM 22) |
 |--------------------|--------------|
 | `loop-unroll` | `loop-unroll<>` (parameterized) |
 | `scalar-evolution` | `scalar-evolution` (unchanged) |
@@ -129,9 +129,9 @@ opt --print-passes 2>&1 | grep <name>
 
 ## Step 6 — Fix: TableGen changes (if applicable)
 
-- `Intrinsics*.td`: `IntrinsicProperty` list format unchanged in LLVM 20; verify your custom records compile with `llvm-tblgen`.
+- `Intrinsics*.td`: `IntrinsicProperty` list format unchanged in LLVM 22; verify your custom records compile with `llvm-tblgen`.
 - Register class names: check `<Target>RegisterInfo.td` for any upstream renames.
-- `add_tablegen()` CMake macro: still present in LLVM 20.
+- `add_tablegen()` CMake macro: still present in LLVM 22.
 
 ---
 
@@ -139,15 +139,15 @@ opt --print-passes 2>&1 | grep <name>
 
 | Old | New / Notes |
 |-----|-------------|
-| `TargetMachine::addPassesToEmitFile(PM, ...)` with legacy PM | Use `TargetMachine::addPassesToEmitFile` with `legacy::PassManager` OR switch to `LLVMTargetMachineEmitToMemoryBuffer` C API |
+| `TargetMachine::addPassesToEmitFile(PM, ...)` with legacy PM | Still uses `legacy::PassManager` for MC emission in LLVM 22 |
 | `MachineFunction::getProperties()` | API stable |
 | `GlobalISel::IRTranslator` | Stable; confirm pass name in NPM pipeline |
 
 ---
 
-## Step 8 — Fix: LLVM 20 C++ standard bump
+## Step 8 — Fix: LLVM 22 C++ standard bump
 
-LLVM 20 requires **C++17** at minimum. Ensure your CMake has:
+LLVM 22 requires **C++17** at minimum. Ensure your CMake has:
 
 ```cmake
 set(CMAKE_CXX_STANDARD 17)
@@ -181,14 +181,14 @@ grep -r "LLVM_VERSION_MAJOR" src/ include/
 ```
 
 ```cpp
-// Before (supporting LLVM 19 and 20):
-#if LLVM_VERSION_MAJOR >= 19
+// Before (supporting LLVM 21 and 22):
+#if LLVM_VERSION_MAJOR >= 21
   // new API
 #else
   // old API
 #endif
 
-// After (LLVM 20 only — remove guards):
+// After (LLVM 22 only — remove guards):
 // new API  // no guard needed
 ```
 
@@ -203,15 +203,17 @@ Note the new minimum LLVM version and any user-visible behavior changes.
 ## Checklist summary
 
 ```
-[ ] CMakeLists.txt: bump find_package(LLVM 20 ...)
+[ ] CMakeLists.txt: bump find_package(LLVM 22 ...)
 [ ] Opaque pointers: remove all typed pointer construction
-[ ] Legacy PM: migrate to NPM (PassInfoMixin, FAM, PreservedAnalyses)
+[ ] Legacy PM: migrate custom passes to NPM (PassInfoMixin, FAM, PreservedAnalyses)
 [ ] llvm::Optional → std::optional, llvm::None → std::nullopt
 [ ] Triple.h / Host.h: update include paths
-[ ] Intrinsic::getDeclaration → getOrInsertDeclaration
+[ ] Intrinsic::getDeclaration → getOrInsertDeclaration / getDeclarationIfExists
+[ ] MCJIT → LLJIT / LLLazyJIT (MCJIT removed in LLVM 22)
+[ ] DIBuilder insertDeclare return type → DbgInstPtr (LLVM 22)
 [ ] C++ standard: ensure CMAKE_CXX_STANDARD 17
 [ ] Pass pipeline strings: verify with opt --print-passes
-[ ] Version guards: remove LLVM_VERSION_MAJOR < 20 branches
+[ ] Version guards: remove LLVM_VERSION_MAJOR < 22 branches
 [ ] Rebuild and run all tests
 [ ] Commit on migration branch, open PR
 ```

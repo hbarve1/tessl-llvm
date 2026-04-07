@@ -37,7 +37,7 @@ These rules apply whenever you are writing, reviewing, or modifying code that us
 ## API correctness
 
 - **Verify API signatures against LLVM 22 headers** before emitting any LLVM API call. When uncertain, consult the relevant doc page or note that verification is needed.
-- Use `Intrinsic::getOrInsertDeclaration()` — `Intrinsic::getDeclaration()` is deprecated.
+- Use `Intrinsic::getOrInsertDeclaration()` or `getDeclarationIfExists()` — `Intrinsic::getDeclaration()` is removed in LLVM 22.
 - Include headers from `llvm/TargetParser/Triple.h` and `llvm/TargetParser/Host.h` — the old `llvm/ADT/Triple.h` and `llvm/Support/Host.h` paths are moved.
 - For the full list of LLVM 22 breaking changes: [version-notes.md](../docs/version-notes.md)
 
