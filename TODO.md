@@ -95,14 +95,14 @@ Checklist for getting the LLVM Tessl tile from stub to a useful public registry 
 ### Medium — Advanced use cases
 
 #### Task 8: Custom calling conventions
-- [ ] Add `docs/calling-conventions.md` — CallingConv enum, TableGen CallingConv.td, CCState, CCValAssign, full custom CC walkthrough
-- [ ] Add `skills/add-calling-convention/SKILL.md` — skill: define and wire a custom calling convention end-to-end
+- [x] Add `docs/calling-conventions.md` — CallingConv enum, TableGen CallingConv.td, CCState, CCValAssign, full custom CC walkthrough
+- [x] Add `skills/add-calling-convention/SKILL.md` — skill: define and wire a custom calling convention end-to-end
 
 #### Task 9: LTO / ThinLTO
-- [ ] Add `docs/lto.md` — LTO vs ThinLTO, plugin interface, `lld` integration, LLVM IR bitcode, summary index
+- [x] Add `docs/lto.md` — LTO vs ThinLTO, plugin interface, `lld` integration, LLVM IR bitcode, summary index
 
 #### Task 10: Custom alias analysis
-- [ ] Add `docs/alias-analysis.md` — AAResult, AliasAnalysis NPM pass, ModRef, writing language-specific AA (e.g., no-alias for immutable values)
+- [x] Add `docs/alias-analysis.md` — AAResult, AliasAnalysis NPM pass, ModRef, writing language-specific AA (e.g., no-alias for immutable values)
 
 ---
 

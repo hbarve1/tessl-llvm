@@ -38,6 +38,9 @@ This tile provides **three layers** of LLVM-specific assistance:
 | [Exception Handling](exception-handling.md) | invoke, landingpad, personality functions, cleanup/catch |
 | [GC & Statepoints](gc-statepoints.md) | gcroot (legacy), gc.statepoint / gc.relocate, StackMap |
 | [Attributes & Metadata](attributes-metadata.md) | Function/param attributes, loop hints, branch weights, TBAA, !range |
+| [Calling Conventions](calling-conventions.md) | `CallingConv`, TableGen CC, `CCState` / `CCValAssign`, ABI lowering |
+| [LTO & ThinLTO](lto.md) | Bitcode, full vs thin link, Clang/LLD flags, summaries |
+| [Alias Analysis](alias-analysis.md) | `AliasResult`, `MemoryLocation`, ModRef, TBAA / `noalias`, custom AA |
 | [LLVM 22 Version Notes](version-notes.md) | Breaking changes from LLVM 19/20/21 → 22 |
 
 ---
@@ -55,6 +58,7 @@ This tile provides **three layers** of LLVM-specific assistance:
 | `add-debug-info` | Adding DWARF debug info to a frontend |
 | `jit-setup` | Setting up ORC JIT v2 for a language runtime or REPL |
 | `lit-filecheck` | Writing lit/FileCheck tests for passes, transforms, or codegen |
+| `add-calling-convention` | Defining or wiring a calling convention (in-tree target or IR-level ABI) |
 
 ---
 
@@ -81,6 +85,7 @@ See [version-notes.md](version-notes.md) for the full migration reference.
 - Out-of-tree project setup (CMake, linking)
 - TableGen for registers, instructions, and intrinsics
 - SelectionDAG and GlobalISel codegen basics
+- Calling conventions, LTO/ThinLTO, and alias analysis concepts
 - LLVM 22 migration guidance
 
 **Out of scope (v0.1.0):**
