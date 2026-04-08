@@ -1,6 +1,6 @@
 {
   "name": "himank-test/tessl-llvm",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "summary": "LLVM 22.x tile for building compilers, language runtimes, and out-of-tree tooling",
   "docs": "docs/index.md",
   "rules": {
