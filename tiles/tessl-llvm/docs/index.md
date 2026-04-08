@@ -59,6 +59,14 @@ This tile provides **three layers** of LLVM-specific assistance:
 | `jit-setup` | Setting up ORC JIT v2 for a language runtime or REPL |
 | `lit-filecheck` | Writing lit/FileCheck tests for passes, transforms, or codegen |
 | `add-calling-convention` | Defining or wiring a calling convention (in-tree target or IR-level ABI) |
+| `add-exception-handling` | Adding try/catch/finally with `invoke`/`landingpad` and the Itanium ABI |
+| `add-gc-statepoints` | Adding GC support: shadow-stack (gcroot) or relocating collector (statepoints) |
+| `add-attributes-metadata` | Annotating IR with `nounwind`/`nocapture`, loop hints, TBAA, branch weights |
+| `add-lto` | Enabling full LTO or ThinLTO for cross-module optimization |
+| `add-alias-analysis` | Querying `AAResults`, emitting `noalias`/TBAA hints, or writing a custom AA pass |
+| `add-sanitizer` | Instrumenting output with ASan, UBSan, or custom runtime checks |
+| `add-vectorization-hint` | Guiding the loop vectorizer and SLP vectorizer via loop metadata |
+| `lower-struct-types` | Lowering structs, unions, tuples, and nested composites to LLVM IR |
 
 ---
 
@@ -77,7 +85,13 @@ See [version-notes.md](version-notes.md) for the full migration reference.
 
 ---
 
-## Scope of this tile (v0.1.0)
+## Tile audit
+
+[AUDIT.md](../AUDIT.md) — gap analysis, full skill inventory, and suggested future additions.
+
+---
+
+## Scope of this tile (v0.5.0)
 
 **In scope:**
 - IR construction and manipulation (IRBuilder, Module, Function, BasicBlock)
