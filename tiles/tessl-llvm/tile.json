@@ -1,6 +1,6 @@
 {
-  "name": "hbarve1/tessl-llvm",
-  "version": "0.4.0",
+  "name": "himank-test/tessl-llvm",
+  "version": "0.5.0",
   "summary": "LLVM 22.x tile for building compilers, language runtimes, and out-of-tree tooling",
   "docs": "docs/index.md",
   "rules": {
@@ -38,6 +38,30 @@
     },
     "add-calling-convention": {
       "path": "skills/add-calling-convention/SKILL.md"
+    },
+    "add-exception-handling": {
+      "path": "skills/add-exception-handling/SKILL.md"
+    },
+    "add-gc-statepoints": {
+      "path": "skills/add-gc-statepoints/SKILL.md"
+    },
+    "add-attributes-metadata": {
+      "path": "skills/add-attributes-metadata/SKILL.md"
+    },
+    "add-lto": {
+      "path": "skills/add-lto/SKILL.md"
+    },
+    "add-alias-analysis": {
+      "path": "skills/add-alias-analysis/SKILL.md"
+    },
+    "add-sanitizer": {
+      "path": "skills/add-sanitizer/SKILL.md"
+    },
+    "add-vectorization-hint": {
+      "path": "skills/add-vectorization-hint/SKILL.md"
+    },
+    "lower-struct-types": {
+      "path": "skills/lower-struct-types/SKILL.md"
     }
   }
 }

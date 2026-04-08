@@ -1,0 +1,71 @@
+{
+  "context": "Tests whether the agent correctly structures an out-of-tree LLVM 22 NPM pass plugin, including the class hierarchy, CMake configuration, plugin registration entry point, and lit test conventions.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "PassInfoMixin base class",
+      "max_score": 12,
+      "description": "The pass class inherits from PassInfoMixin<ClassName> (not FunctionPass, ModulePass, or any legacy base class)"
+    },
+    {
+      "name": "run() return type",
+      "max_score": 8,
+      "description": "The run() method returns PreservedAnalyses (not bool or void)"
+    },
+    {
+      "name": "Plugin entry point name",
+      "max_score": 10,
+      "description": "Defines a function named llvmGetPassPluginInfo with extern \"C\" linkage (and optionally LLVM_ATTRIBUTE_WEAK)"
+    },
+    {
+      "name": "Pipeline registration callback",
+      "max_score": 8,
+      "description": "Uses PB.registerPipelineParsingCallback (or equivalent PassBuilder registration) inside the plugin info lambda"
+    },
+    {
+      "name": "CMake llvm_map_components_to_libnames",
+      "max_score": 8,
+      "description": "CMakeLists.txt uses llvm_map_components_to_libnames() to resolve LLVM library names (not hardcoded -lLLVMCore or similar)"
+    },
+    {
+      "name": "CMake find_package LLVM 22",
+      "max_score": 6,
+      "description": "CMakeLists.txt uses find_package(LLVM 22 REQUIRED CONFIG) to locate LLVM"
+    },
+    {
+      "name": "MODULE or pass plugin CMake target",
+      "max_score": 8,
+      "description": "CMakeLists.txt uses add_llvm_pass_plugin() OR add_library(...MODULE...) with POSITION_INDEPENDENT_CODE ON (not add_executable or add_llvm_component_library)"
+    },
+    {
+      "name": "C++17 standard",
+      "max_score": 5,
+      "description": "CMakeLists.txt sets CMAKE_CXX_STANDARD to 17 (or higher)"
+    },
+    {
+      "name": "No using namespace llvm in header",
+      "max_score": 5,
+      "description": "The .h header file does NOT contain 'using namespace llvm' at file scope"
+    },
+    {
+      "name": "Lit test smoke RUN line",
+      "max_score": 8,
+      "description": "The .ll lit test file contains a RUN line that invokes opt with -disable-output (smoke test for crash-free execution)"
+    },
+    {
+      "name": "Lit test plugin load syntax",
+      "max_score": 8,
+      "description": "The .ll lit test RUN line uses --load-pass-plugin=%llvmshlibdir/... or an equivalent substitution to load the plugin"
+    },
+    {
+      "name": "CHECK-LABEL in lit test",
+      "max_score": 8,
+      "description": "The .ll lit test uses CHECK-LABEL: (not bare CHECK:) to anchor patterns to specific function definitions"
+    },
+    {
+      "name": "No legacy pass manager APIs",
+      "max_score": 6,
+      "description": "Implementation does NOT use legacy::PassManager, FunctionPass, ModulePass, AU.setPreservesAll(), or getAnalysis<>() anywhere"
+    }
+  ]
+}

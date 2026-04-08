@@ -1,0 +1,66 @@
+{
+  "context": "Tests whether the agent correctly applies LLVM 22 migration changes: replacing legacy pass manager with NPM, fixing opaque pointer APIs, updating deprecated headers, replacing llvm::Optional with std::optional, and using getOrInsertDeclaration instead of removed getDeclaration.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Legacy PM removed from StatsPass",
+      "max_score": 12,
+      "description": "StatsPass no longer inherits from FunctionPass. Instead uses PassInfoMixin<StatsPass> with a run(Function&, FunctionAnalysisManager&) method returning PreservedAnalyses"
+    },
+    {
+      "name": "No legacy PM in main.cpp",
+      "max_score": 8,
+      "description": "main.cpp does NOT use legacy::PassManager, PM.add(), or PM.run(). Custom pass invoked via NPM (ModulePassManager or FunctionPassManager with PassBuilder)"
+    },
+    {
+      "name": "llvm::Optional replaced",
+      "max_score": 10,
+      "description": "All uses of llvm::Optional<T> replaced with std::optional<T>, and llvm::None replaced with std::nullopt. llvm/ADT/Optional.h header removed."
+    },
+    {
+      "name": "Intrinsic::getDeclaration replaced",
+      "max_score": 12,
+      "description": "Intrinsic::getDeclaration() replaced with Intrinsic::getOrInsertDeclaration() or Intrinsic::getDeclarationIfExists()"
+    },
+    {
+      "name": "Opaque pointer API fixed",
+      "max_score": 10,
+      "description": "getFloatPtrTy() (or equivalent) no longer uses ->getPointerTo(). Uses PointerType::get(Ctx, 0) or Builder.getPtrTy() instead"
+    },
+    {
+      "name": "Triple.h include path updated",
+      "max_score": 8,
+      "description": "Include of llvm/ADT/Triple.h updated to llvm/TargetParser/Triple.h"
+    },
+    {
+      "name": "Host.h include path updated",
+      "max_score": 8,
+      "description": "Include of llvm/Support/Host.h updated to llvm/TargetParser/Host.h"
+    },
+    {
+      "name": "CMake LLVM version bumped",
+      "max_score": 6,
+      "description": "CMakeLists.txt changes find_package(LLVM 18 ...) to find_package(LLVM 22 REQUIRED CONFIG)"
+    },
+    {
+      "name": "CMake uses llvm_map_components_to_libnames",
+      "max_score": 8,
+      "description": "CMakeLists.txt replaces hardcoded -lLLVMCore/-lLLVMSupport/etc. with llvm_map_components_to_libnames()"
+    },
+    {
+      "name": "C++17 set in CMake",
+      "max_score": 6,
+      "description": "CMakeLists.txt sets CMAKE_CXX_STANDARD to 17 (or higher)"
+    },
+    {
+      "name": "No using namespace llvm in header",
+      "max_score": 6,
+      "description": "StatsPass.h does NOT contain 'using namespace llvm' at file scope"
+    },
+    {
+      "name": "MIGRATION.md lists changes",
+      "max_score": 6,
+      "description": "MIGRATION.md file is present and lists at least 4 of the changes made with reasons"
+    }
+  ]
+}

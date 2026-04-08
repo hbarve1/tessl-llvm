@@ -1,0 +1,66 @@
+{
+  "context": "Tests whether the agent correctly implements DWARF debug info emission in LLVM 22, including required module flags, DIBuilder finalization, correct alloca location handling, and parameter variable preservation.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "DIBuilder finalize called",
+      "max_score": 14,
+      "description": "Code calls DBuilder->finalize() (or DBuilder.finalize()) after all functions are emitted, before printing/compiling the module"
+    },
+    {
+      "name": "Debug Info Version module flag",
+      "max_score": 10,
+      "description": "Code adds a module flag with key \"Debug Info Version\" using addModuleFlag() with the value llvm::DEBUG_METADATA_VERSION"
+    },
+    {
+      "name": "Dwarf Version module flag",
+      "max_score": 8,
+      "description": "Code adds a module flag with key \"Dwarf Version\" (typically 4 or 5) using addModuleFlag()"
+    },
+    {
+      "name": "No location on alloca instructions",
+      "max_score": 10,
+      "description": "Alloca instructions are emitted without a debug location (clearLocation() or equivalent called before alloca, NOT setLocation() before alloca). Implementation distinguishes alloca emission from statement emission."
+    },
+    {
+      "name": "AlwaysPreserve=true for parameters",
+      "max_score": 10,
+      "description": "createParameterVariable() is called with AlwaysPreserve set to true (not false)"
+    },
+    {
+      "name": "createCompileUnit called",
+      "max_score": 6,
+      "description": "Code calls DBuilder->createCompileUnit() to establish the compilation unit before emitting any functions"
+    },
+    {
+      "name": "setSubprogram on Function",
+      "max_score": 8,
+      "description": "F->setSubprogram(SP) is called to attach the DISubprogram to the llvm::Function"
+    },
+    {
+      "name": "insertDeclare usage",
+      "max_score": 8,
+      "description": "Code uses DBuilder->insertDeclare() to associate AllocaInst with DIVariable (for both params and locals)"
+    },
+    {
+      "name": "DILocation per instruction",
+      "max_score": 8,
+      "description": "Debug locations are set via B.SetCurrentDebugLocation(DILocation::get(...)) — does NOT reuse the same DILocation object for all instructions"
+    },
+    {
+      "name": "createParameterVariable vs createAutoVariable",
+      "max_score": 8,
+      "description": "Uses createParameterVariable() for function parameters and createAutoVariable() (or createLocalVariable) for local variables — not the same call for both"
+    },
+    {
+      "name": "createSubroutineType for function type",
+      "max_score": 6,
+      "description": "Uses DBuilder->createSubroutineType() to create the function's debug type (DISubroutineType)"
+    },
+    {
+      "name": "createBasicType for primitive types",
+      "max_score": 4,
+      "description": "Uses DBuilder->createBasicType() for primitive type mappings (e.g., int, bool, float) with appropriate DW_ATE_ encoding"
+    }
+  ]
+}

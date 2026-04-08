@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent follows LLVM lit/FileCheck conventions: using CHECK-LABEL to anchor function boundaries, capturing register names instead of using unnamed %0/%1 patterns, adding a smoke test RUN line, and using CHECK-NOT for negative tests.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "CHECK-LABEL for every function",
+      "max_score": 12,
+      "description": "Every test function in the file has a corresponding CHECK-LABEL: pattern anchored to the function name (e.g., CHECK-LABEL: @test_add_zero)"
+    },
+    {
+      "name": "No bare %0 / %1 patterns",
+      "max_score": 12,
+      "description": "No CHECK/CHECK-NEXT/CHECK-SAME patterns match literal unnamed register values %0, %1, %2, etc. (uses named values or %[[VAR:...]] captures instead)"
+    },
+    {
+      "name": "Smoke test RUN line",
+      "max_score": 10,
+      "description": "At least one RUN line uses -disable-output (smoke test that verifies no crash without checking IR output)"
+    },
+    {
+      "name": "Multiple RUN lines",
+      "max_score": 6,
+      "description": "File has at least 2 RUN lines (one correctness check piped to FileCheck, one smoke test)"
+    },
+    {
+      "name": "CHECK-NOT for negative test",
+      "max_score": 10,
+      "description": "Uses CHECK-NOT to assert that something is absent (e.g., volatile load NOT eliminated, or a transformed instruction no longer present)"
+    },
+    {
+      "name": "Named value captures",
+      "max_score": 10,
+      "description": "Uses %[[VARNAME:[a-z0-9.]+]] capture syntax OR named LLVM values (e.g., %result = ...) in at least one CHECK pattern that reuses the captured/named value"
+    },
+    {
+      "name": "FileCheck piped from opt",
+      "max_score": 8,
+      "description": "At least one RUN line pipes opt output to FileCheck (e.g., opt -passes=constfold-demo -S %s | FileCheck %s)"
+    },
+    {
+      "name": "Four transformations tested",
+      "max_score": 8,
+      "description": "File contains test functions for all four described transformations: add-zero, mul-one, sub-self-to-zero, and constant-branch elimination"
+    },
+    {
+      "name": "CHECK-NEXT or CHECK-SAME usage",
+      "max_score": 8,
+      "description": "Uses at least one CHECK-NEXT: or CHECK-SAME: directive (not just plain CHECK:) to test adjacency"
+    },
+    {
+      "name": "Pass name in RUN lines",
+      "max_score": 8,
+      "description": "RUN lines use -passes=constfold-demo (the NPM pipeline string syntax), not the legacy -constfold-demo flag"
+    },
+    {
+      "name": "Correct -S flag",
+      "max_score": 8,
+      "description": "All correctness-checking RUN lines include -S flag to output IR as text (not bitcode) before piping to FileCheck"
+    }
+  ]
+}

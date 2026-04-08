@@ -1,0 +1,66 @@
+{
+  "context": "Tests whether the agent uses the correct ORC v2 JIT APIs (LLJIT/LLLazyJIT) instead of deprecated MCJIT, initializes targets in the right order, wraps modules in ThreadSafeModule with per-module contexts, adds DynamicLibrarySearchGenerator, and handles Expected<T>/Error correctly.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "ORC v2 API used",
+      "max_score": 12,
+      "description": "Code uses LLJIT or LLLazyJIT from llvm/ExecutionEngine/Orc/ — does NOT use MCJIT (ExecutionEngine, EngineBuilder, createJIT, or #include of llvm/ExecutionEngine/MCJIT.h)"
+    },
+    {
+      "name": "LLJITBuilder creation",
+      "max_score": 8,
+      "description": "JIT instance created via LLJITBuilder().create() (or LLLazyJITBuilder for lazy variant)"
+    },
+    {
+      "name": "InitializeNativeTarget before JIT",
+      "max_score": 10,
+      "description": "InitializeNativeTarget() is called before the JIT instance is constructed"
+    },
+    {
+      "name": "InitializeNativeTargetAsmPrinter",
+      "max_score": 8,
+      "description": "InitializeNativeTargetAsmPrinter() is called (without it the JIT cannot emit code)"
+    },
+    {
+      "name": "ThreadSafeModule wrapping",
+      "max_score": 10,
+      "description": "IR modules are wrapped in ThreadSafeModule with a std::unique_ptr<LLVMContext> (one context per module)"
+    },
+    {
+      "name": "DynamicLibrarySearchGenerator",
+      "max_score": 10,
+      "description": "DynamicLibrarySearchGenerator::GetForCurrentProcess() is added to the main JITDylib to expose host symbols"
+    },
+    {
+      "name": "Error handling with ExitOnError or Expected",
+      "max_score": 8,
+      "description": "ORC API calls are wrapped with ExitOnErr() or explicit Expected<T>/Error handling — no unhandled return values"
+    },
+    {
+      "name": "addIRModule usage",
+      "max_score": 8,
+      "description": "Modules are added to the JIT via JIT->addIRModule(std::move(TSM)) (not the old addModule API)"
+    },
+    {
+      "name": "Symbol lookup",
+      "max_score": 8,
+      "description": "Functions are looked up via JIT->lookup(\"name\") returning a symbol that is cast to a function pointer via toPtr<>()"
+    },
+    {
+      "name": "InitLLVM in main",
+      "max_score": 6,
+      "description": "main() initializes with InitLLVM X(argc, argv) before any LLVM operations"
+    },
+    {
+      "name": "No shared LLVMContext across modules",
+      "max_score": 6,
+      "description": "Does NOT construct multiple ThreadSafeModule instances sharing the same LLVMContext (each TSM gets its own context)"
+    },
+    {
+      "name": "CMake llvm_map_components_to_libnames",
+      "max_score": 6,
+      "description": "CMakeLists.txt uses llvm_map_components_to_libnames() including OrcJIT component"
+    }
+  ]
+}
